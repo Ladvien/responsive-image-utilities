@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!---[if lt IE 7]-->
+<html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en">
+<?endif]->
+ <!---[if (IE 7)&!(IEMobile)?-->
+ <html class="no-js lt-ie9 lt-ie8" lang="en">
+  <?endif]->
+  <!---[if (IE 8)&!(IEMobile)?-->
+  <html class="no-js lt-ie9" lang="en">
+   <?endif]->
+   <!---[if gt IE 8?-->
+   <!----->
+   <html class="no-js" lang="en">
+    <!---<![endif]--->
+    <head>
+     <head>
+      <!-- Check if page has a title, if not use the site name -->
+      <title>
+       Let's Build a Data Warehouse
+      </title>
+      <meta charset="utf-8"/>
+      <meta content="Pelican" name="generator"/>
+      <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+      <meta content="en_US" property="og:locale"/>
+      <meta content="article" property="og:type"/>
+      <meta content="Ladvien's Lab" property="og:site_name"/>
+      <meta content="True" name="HandheldFriendly"/>
+      <meta content="320" name="MobileOptimized"/>
+      <meta content="width=device-width, initial-scale=1" name="viewport"/>
+      <meta content="Let's Build a Data Warehouse" property="og:title">
+       <meta content="" name="description"/>
+       <meta content="/lets-build-data-warehouse/" property="og:url"/>
+       <meta content="/images/ladvien.com.png" property="og:image"/>
+       <meta content="/images/{'feature': 'lets-build-data-warehouse-70s.jpg'}" property="og:image"/>
+       <meta content="2022-11-05T00:00:00-05:00" property="article:published_time"/>
+       <meta content="2022" property="article:section"/>
+       <meta content="[&lt;Tag 'datawarehouse'&gt;, &lt;Tag 'healthkit'&gt;, &lt;Tag 'dbt'&gt;, &lt;Tag 'aws'&gt;]" property="article:tag"/>
+       <!-- Add this to your theme's header.html file -->
+       <link href="/theme/css/style.min.css?2d6d19e3" rel="stylesheet"/>
+       <!-- Webfonts -->
+       <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic&amp;display=swap" rel="stylesheet" type="text/css"/>
+       <meta content="on" http-equiv="cleartype"/>
+      </meta>
+     </head>
+    </head>
+    <body class="feature" id="post">
+     <div class="entry-header">
+      <div class="entry-image">
+       <picture>
+        <source srcset="responsive_images/lets-build-data-warehouse-70s_800x336.webp 800w, responsive_images/lets-build-data-warehouse-70s_400x168.webp 400w, responsive_images/lets-build-data-warehouse-70s_600x252.webp 600w"/>
+        <img alt="Let's Build a Data Warehouse" src="responsive_images//Users/ladvien/ladvien.com/content/images/lets-build-data-warehouse-70s.jpg"/>
+       </picture>
+      </div>
+      <!-- /.entry-image -->
+     </div>
+     <!-- /.entry-header -->
+     <input id="active" type="checkbox"/>
+     <label class="menu-btn" for="active">
+      <span>
+      </span>
+     </label>
+     <label class="close" for="active">
+     </label>
+     <div class="wrapper">
+      <ul>
+       <li>
+        <a href="/">
+         <i class="fa fa-fw fa-home">
+         </i>
+         Home
+        </a>
+       </li>
+       <li>
+        <a href="/posts">
+         <i class="fa fa-fw fa-book">
+         </i>
+         All Posts
+        </a>
+       </li>
+       <li>
+        <a href="/series/">
+         <i class="fa fa-fw fa-cogs">
+         </i>
+         Series
+        </a>
+       </li>
+       <li>
+        <a href="/about/">
+         <i class="fa fa-fw fa-user">
+         </i>
+         About
+        </a>
+       </li>
+       <li>
+        <a href="mailto:cthomasbrittain@hotmail.com">
+         <i class="fa fa-fw fa-envelope">
+         </i>
+         Email
+        </a>
+       </li>
+       <li>
+        <a href="https://github.com/Ladvien">
+         <i class="fa fa-fw fa-github">
+         </i>
+         GitHub
+        </a>
+       </li>
+       <li>
+        <a href="https://www.linkedin.com/in/cthomasbrittain/">
+         <i class="fa fa-fw fa-linkedin">
+         </i>
+         LinkedIn
+        </a>
+       </li>
+      </ul>
+     </div>
+     <div id="main" role="main">
+      <article class="hentry">
+       <header class="header-title">
+        <div class="header-title-wrap">
+         <h1 class="entry-title">
+          <a href="lets-build-data-warehouse/" rel="bookmark" title="Let's Build a Data Warehouse">
+           Let's Build a Data Warehouse
+          </a>
+         </h1>
+         <h2>
+          <span class="entry-date date published">
+           <time datetime="2022-11-05 00:00:00-05:00">
+            November 05, 2022
+           </time>
+          </span>
+         </h2>
+        </div>
+        <!-- /.header-title-wrap -->
+       </header>
+       <div class="entry-content">
+        <h2>
+         The Reason
+        </h2>
+        <p>
+         I am the lead data engineer at
+         <a href="https://www.bitfocus.com/">
+          Bitfocus
+         </a>
+         , the best SaaS provider for homeless management information systems (
+         <a href="https://www.hudexchange.info/programs/hmis/">
+          HMIS
+         </a>
+         ).
+        </p>
+        <p>
+         For many reasons, I've advocated with our executives to switch our analytics flow to use a data warehouse. Strangely, it worked. I'm now positioned to design the beast. This series will be my humble attempt to journal everything I learn along the way.
+        </p>
+        <h2>
+         The Plan
+        </h2>
+        <p>
+         I've decided it would be better if I learned how to build an analytics warehouse on my own, before committing our entire business to an untested technology stack. Of course, I needed a project similar enough it had the same challenges. I've decided to expose my Apple HealthKit data in a business intelligence platform like Looker.
+        </p>
+        <p>
+         <picture>
+          <source srcset="responsive_images/self_sensored_infrastructure_diagram_400x534.webp 400w, responsive_images/self_sensored_infrastructure_diagram_600x800.webp 600w"/>
+          <img alt="datawarehouse-flow-diagram-for-exposing-apple-health-data" src="responsive_images//Users/ladvien/ladvien.com/content/images/data-warehouse/self_sensored_infrastructure_diagram.png"/>
+         </picture>
+        </p>
+        <h2>
+         The Stack
+        </h2>
+        <p>
+         I've attempted similar health data projects before:
+        </p>
+        <ul>
+         <li>
+          <a href="https://ladvien.com/get-myfitness-pal-data-python/">
+           Give Me MyFitness Pal Data!
+          </a>
+         </li>
+        </ul>
+        <p>
+         But I'm going to be a bit more ambitious this time. I'd like to get all of the data generated by my Apple Watch and iPhone out of HealthKit and send them to a SQL database inside AWS.
+        </p>
+        <p>
+         The ingestion of these data will be lightly structured. That is, no transformations will be done until the data are in the database. I'll use the
+         <a href="https://apps.apple.com/us/app/health-auto-export-json-csv/id1115567069">
+          Auto Health Export iOS app
+         </a>
+         to send data to a web API endpoint.
+        </p>
+        <p>
+         The web API endpoint will be created using the
+         <a href="https://www.serverless.com/">
+          Severless Framework
+         </a>
+         . This should allow me to build a REST API on top of
+         <a href="https://docs.aws.amazon.com/lambda/latest/dg/welcome.html">
+          AWS' Lambda
+         </a>
+         functions, enabling the Auto Health Export app to synchronize data to the database periodically (as low as every 5 minutes, but dictated by Apple).
+        </p>
+        <p>
+         Once the data are stored in a database, I'll use
+         <a href="https://www.getdbt.com/">
+          Dbt
+         </a>
+         (Data Build Tool) to transform the data for exposing them in the business intelligence tool. This idea of processing data inside a database is often referred to as "
+         <a href="https://en.wikipedia.org/wiki/Extract,_load,_transform">
+          extract, load, transform
+         </a>
+         " or "ELT," which is becoming standard versus the classical "
+         <a href="https://en.wikipedia.org/wiki/Extract,_transform,_load">
+          extract, transform, load
+         </a>
+         " or "ETL."
+        </p>
+        <p>
+         After transformation, I'll use Dbt to shove the data back into a database built for analytics query processing. Aka, a "data warehouse." The most popular analytics database technologies right now are Snowflake and Redshift. I'll use neither. I can't afford them and I despise how pushy their salespeople are. Instead, I'll use Postgres. (It's probably what Snowflake and Redshift are built on anyway.)
+        </p>
+        <p>
+         Lastly, I'll stand up
+         <a href="https://www.lightdash.com/">
+          Lightdash
+         </a>
+         as the business intelligence tool.
+        </p>
+        <h2>
+         Tools
+        </h2>
+        <h3>
+         Auto Health Export
+        </h3>
+        <p>
+         As mentioned, I've attempted to pull data from the Apple ecosystem several times in the past. One challenge I had was writing an iOS app to pull HealthKit data from an Apple device and send it to a REST API. It's not hard. I'm just not an iOS developer, making it time-consuming. And I'm at the point in my tech career I'm comfortable purchasing others' solutions to my problems.
+        </p>
+        <p>
+         Anyway, not a perfect app, but it does have the ability to pull your recent HealthKit data and send it to a REST API endpoint.
+*
+         <a href="https://www.healthexportapp.com/">
+          Auto Health Export
+         </a>
+        </p>
+        <h3>
+         Serverless
+        </h3>
+        <p>
+         The team creating our SaaS product has talked about going "serverless" for a while. In an attempt to keep up, I decided to focus on creating Lambda and API Gateway services to receive the data from the Auto Health Export app.
+        </p>
+        <p>
+         While I was researching serverless architecture I ran into the Serverless Framework. I quite like it. It allows you to focus on the code of Lambda, as it will build out the needed infrastructure on deployment.
+*
+         <a href="https://www.serverless.com/">
+          Serverless
+         </a>
+        </p>
+        <h3>
+         AWS' Lambda
+        </h3>
+        <p>
+         The heart of the ingestion. This method will receive the health data as JSON and store it in the Postgres database for transformation.
+*
+         <a href="https://docs.aws.amazon.com/lambda/latest/dg/welcome.html">
+          AWS' Lambda
+         </a>
+        </p>
+        <h3>
+         Postgres
+        </h3>
+        <p>
+         I've selected the Postgres database after researching. I'll detail my reason for selecting Postgres later in the series.
+        </p>
+        <p>
+         Regardless of tech choice, this database will hold untransformed data, or "raw data," as well as act as the processing engine for transforming the data before moving it into the analytics warehouse.
+*
+         <a href="https://www.postgresql.org/">
+          Postgres &gt;=9.5
+         </a>
+        </p>
+        <h2>
+         Dbt
+        </h2>
+        <p>
+         <img alt="data-build-tool-banner-log" src="images/data-warehouse/dbt-logo.png"/>
+        </p>
+        <p>
+         Data Build Tool, or Dbt, is quickly becoming the de facto tool for transforming raw data into an analytics data warehouse. At its core, it uses SQL and
+         <a href="https://jinja.palletsprojects.com/en/3.1.x/">
+          Jinja
+         </a>
+         to enable consistent and powerful transformation "models." These models rely on a scalable SQL database, known as a "processing engine," to transform the data before sending it on to its final destination, the analytics warehouse.
+        </p>
+        <ul>
+         <li>
+          <a href="https://www.getdbt.com/">
+           Dbt
+          </a>
+         </li>
+        </ul>
+        <h3>
+         MariaDB with ColumnStore
+        </h3>
+        <p>
+         <img alt="mariadb-banner-logo" src="images/data-warehouse/mariadb.png"/>
+         I'd like to use MariaDB as the actual analytics data warehouse. It is an unconventional choice compared to Snowflake or Redshift. But, I'm attempting to use open-source software (OSS) as much as possible, as our company is having a horrific experience with the downfall of Looker.
+        </p>
+        <p>
+         One of the better-kept secrets about MariaDB is its ColumnStore engine. It allows three major features which have convinced me to try it out:
+        </p>
+        <ul>
+         <li>
+          It stores data in a column, making it faster for analytics
+         </li>
+         <li>
+          The data store is distributed among S3 buckets
+         </li>
+         <li>
+          Data are
+          <a href="https://en.wikipedia.org/wiki/Run-length_encoding">
+           run-length encoded
+          </a>
+          , greatly reducing storage size
+         </li>
+         <li>
+          ColumnStore engine tables have join capability with InnoDB tables
+         </li>
+        </ul>
+        <p>
+         I'm also curious whether MariaDB could possibly be used as a processing engine, as I'd prefer to reduce the cognitive complexity of the stack by having only one SQL dialect.
+        </p>
+        <ul>
+         <li>
+          <a href="https://mariadb.com/kb/en/mariadb-columnstore/">
+           MariaDB &gt;=10.5.4
+          </a>
+         </li>
+        </ul>
+        <h3>
+         Lightdash
+        </h3>
+        <p>
+         <img alt="lightdash-data-visualization-tool-banner-logo" src="images/data-warehouse/lightdash.png"/>
+         At this point, you probably got I'm not happy with what Google has done to Looker. That stated, Looker is still my favorite business intelligence tool. Luckily, there is a budding Looker alternative that meets my OSS requirement: Lightdash. I've never used it, let alone deployed it into production. I guess we'll see how it goes.
+        </p>
+        <ul>
+         <li>
+          <a href="https://www.lightdash.com/">
+           Lightdash
+          </a>
+         </li>
+        </ul>
+        <h3>
+         Terraform
+        </h3>
+        <p>
+         <img alt="terraform-banner-logo" src="images/data-warehouse/terraform.png"/>
+        </p>
+        <p>
+         You may notice, a data warehouse requires a lot of infrastructure. I hate spinning-up infrastructure through a UI. It isn't repeatable, it's not in version control, and I like writing code. Luckily, Hashicorp's got my back with Terraform. It allows defining and deploying infrastructure as code (IaC).
+        </p>
+        <p>
+         <a href="https://www.terraform.io/">
+          Terraform
+         </a>
+        </p>
+        <h3>
+         Terragrunt
+        </h3>
+        <p>
+         Terragrunt is a wonderful addition to Terraform. It allows an entire company's infrastructure to be easily maintained.
+        </p>
+        <p>
+         <a href="https://terragrunt.gruntwork.io/">
+          Terragrunt
+         </a>
+        </p>
+        <h2>
+         The Beginning
+        </h2>
+        <p>
+         First up, let's take a look at the Auto Health Export app and our Serverless architecture. A couple of personal notes before jumping in.
+        </p>
+        <p>
+         I'm writing this series as a journal of what I learn. That stated, be aware I may switch solutions anywhere in our stack, at any time.
+        </p>
+        <p>
+         Also, I know a lot of stuff. But there's more stuff I don't know. If I make a mistake, please let me know in the comments. All feedback is appreciated, but respectful feedback is adored.
+        </p>
+        <footer class="entry-meta">
+         <span class="entry-tags">
+          <a class="tag" href="/tags/#datawarehouse" title="Pages tagged datawarehouse">
+           <span class="term">
+            datawarehouse
+           </span>
+          </a>
+          <a class="tag" href="/tags/#healthkit" title="Pages tagged healthkit">
+           <span class="term">
+            healthkit
+           </span>
+          </a>
+          <a class="tag" href="/tags/#dbt" title="Pages tagged dbt">
+           <span class="term">
+            dbt
+           </span>
+          </a>
+          <a class="tag" href="/tags/#aws" title="Pages tagged aws">
+           <span class="term">
+            aws
+           </span>
+          </a>
+         </span>
+        </footer>
+       </div>
+       <!--- /.entry-content --->
+      </article>
+     </div>
+     <!--- /#main --->
+     <div class="footer-wrapper">
+      <footer role="contentinfo">
+       <span>
+        © 2024 C. Thomas Brittain.  Powered by
+        <a href="https://docs.getpelican.com/en/latest/index.html" rel="nofollow">
+         Pelican
+        </a>
+        using the
+        <a href="https://github.com/mmistakes/jekyll-theme-hpstr" rel="nofollow">
+         HPSTR Theme
+        </a>
+        .
+       </span>
+       <script src="theme/script.min.js?1686b659" type="text/javascript">
+    </script>
+       <!-- Load Modernizr -->
+       <!--<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>-->
+       <!--<script src="/assets/js/plugins/jquery.magnific-popup.js"></script>-->
+       <script>
+    </script>
+      </footer>
+     </div>
+     <!--- /.footer-wrapper --->
+    </body>
+   </html>
+  </html>
+ </html>
+</html>
