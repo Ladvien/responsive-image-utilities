@@ -3,7 +3,6 @@ name = "responsive-image-utilities"
 version = "0.1.0"
 description = ""
 authors = ["C. Thomas Brittain <cthomasbrittain@hotmail.com>"]
-license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]

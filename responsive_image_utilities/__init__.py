@@ -56,7 +56,7 @@ class ImageFolder:
     def image_stats(self):
         data = self.load_images()
         for datum in data:
-            resize_tuple = datum.image.size[0] // 2, datum.image.size[1] // 2
+            resize_tuple = datum.image.size[0] // 3, datum.image.size[1] // 3
             low_res = datum.image.copy().resize(resize_tuple)
             low_res = np.array(low_res.resize(datum.image.size))
             image = np.array(datum.image)
