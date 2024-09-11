@@ -12,6 +12,11 @@ pillow = "^10.4.0"
 sewar = "^0.4.6"
 
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+black = "^24.8.0"
+ruff = "^0.6.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
