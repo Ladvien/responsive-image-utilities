@@ -5,6 +5,7 @@ description = ""
 authors = ["C. Thomas Brittain <cthomasbrittain@hotmail.com>"]
 readme = "README.md"
 
+
 [tool.poetry.dependencies]
 python = "^3.12"
 rich = "^13.8.0"
@@ -20,3 +21,13 @@ ruff = "^0.6.4"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/6.2.x/customize.html
+# https://pytest-with-eric.com/configuration/pytest-config-file/#Using-pytest-ini
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+    "integration",
+]

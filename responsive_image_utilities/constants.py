@@ -1,4 +1,4 @@
-IMAGE_TYPES = [
+IMAGE_TYPES_LOWERCASE = [
     "jpg",
     "jpeg",
     "png",
@@ -9,3 +9,5 @@ IMAGE_TYPES = [
     "svg",
     "ico",
 ]
+
+IMAGE_TYPES_UPPERCASE = [image_type.upper() for image_type in IMAGE_TYPES_LOWERCASE]
