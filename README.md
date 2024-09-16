@@ -1,7 +1,6 @@
 # responsive-image-utilities
 A module for creating responsive images, with a simple API.
 
-
 ## Description
 - Image srcset tags are created
 - Module can detect images resized too small, avoids it
@@ -18,6 +17,8 @@ srcets = ImageFolder('./images').set_output_folder('./output')
 ```
 
 ### Reads
+- [Image Scoring: Allocating Percentage Score to Images for Their Quality](https://medium.com/engineering-housing/image-scoring-allocating-percentage-score-to-images-for-their-quality-6169abbf850e)
+- [Fine Grain Image Enhancer](https://huggingface.co/spaces/finegrain/finegrain-image-enhancer)
 - [Pillow Docs](https://pillow.readthedocs.io/en/stable/reference/ImageFilter.html)
 - [Image Resizing Algorithm Gallery](https://en.wikipedia.org/wiki/Comparison_gallery_of_image_scaling_algorithms)
 - [Detecting Out of Focus Images](https://mathematica.stackexchange.com/questions/71726/how-can-i-detect-if-an-image-is-of-poor-quality)

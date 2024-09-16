@@ -26,7 +26,7 @@ class ImageLoader:
 
     def load_images(self) -> List[ImageFile]:
         return [
-            ImageFile(image_path)
+            ImageFile(image_path=image_path)
             for image_path in self.image_paths
             if image_path.is_valid_image()
         ]

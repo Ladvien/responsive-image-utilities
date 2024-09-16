@@ -36,7 +36,7 @@ def test_image_loader_loads_images_with_uppercase_extension():
     images = loader.load_images()
 
     images_with_uppercase_ext = [
-        image for image in images if image.potential_image.path.endswith("PNG")
+        image for image in images if image.image_path.path.endswith("PNG")
     ]
 
     assert len(images_with_uppercase_ext) == UPPERCASE_IMAGES_IN_FOLDER
