@@ -17,6 +17,7 @@ srcets = ImageFolder('./images').set_output_folder('./output')
 ```
 
 ### Reads
+- [Adding Noise to Images](https://medium.com/@ms_somanna/guide-to-adding-noise-to-your-data-using-python-and-numpy-c8be815df524)
 - [Image Scoring: Allocating Percentage Score to Images for Their Quality](https://medium.com/engineering-housing/image-scoring-allocating-percentage-score-to-images-for-their-quality-6169abbf850e)
 - [Fine Grain Image Enhancer](https://huggingface.co/spaces/finegrain/finegrain-image-enhancer)
 - [Pillow Docs](https://pillow.readthedocs.io/en/stable/reference/ImageFilter.html)
