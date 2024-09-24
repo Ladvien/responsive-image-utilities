@@ -1,8 +1,9 @@
+from __future__ import annotations  # Needed for type hinting
+
 from PIL import Image as PILImage
 import numpy as np
 from PIL import Image as PILImage
 import torchvision.transforms.functional as tf
-
 
 from responsive_image_utilities.image_path import ImagePath
 from responsive_image_utilities.image_quality import ImageQuality
@@ -29,7 +30,6 @@ class ImageFile:
         else:
             raise Exception("No image provided.")
 
-        print(f"Image size: {self.as_numpy_array().shape}")
         self.quality = ImageQuality(self.image)
 
     def as_numpy_array(self) -> np.ndarray:

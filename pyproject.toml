@@ -14,6 +14,7 @@ sewar = "^0.4.6"
 piq = "^0.8.0"
 torchvision = "^0.19.1"
 matplotlib = "^3.9.2"
+perlin-numpy = {git = "https://github.com/pvigier/perlin-numpy"}
 
 
 [tool.poetry.group.dev.dependencies]
