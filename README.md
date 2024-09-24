@@ -25,3 +25,5 @@ srcets = ImageFolder('./images').set_output_folder('./output')
 - [Detecting Out of Focus Images](https://mathematica.stackexchange.com/questions/71726/how-can-i-detect-if-an-image-is-of-poor-quality)
 - [Comprehensive Image Quality Detection Algorithms](https://medium.com/@jaikochhar06/how-to-evaluate-image-quality-in-python-a-comprehensive-guide-e486a0aa1f60)
 - [Package Contain Algorithms Above](https://github.com/andrewekhalel/sewar)
+#### Machine Learning Approaches
+- [Reddit ML Quality Assessment](https://www.reddit.com/r/MachineLearning/comments/12v7jew/d_is_accurately_estimating_image_quality_even/)
