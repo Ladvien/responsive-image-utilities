@@ -5,13 +5,16 @@ import numpy as np
 from PIL import Image as PILImage
 import torchvision.transforms.functional as tf
 
+from responsive_image_utilities.image_noiser import ImageNoiser
 from responsive_image_utilities.image_path import ImagePath
-from responsive_image_utilities.image_quality import ImageQuality
+from responsive_image_utilities.image_quality import (
+    ImageQualityAssessor,
+    ImageQualityScores,
+)
 
 
 class ImageFile:
     image_path: ImagePath
-    quality: ImageQuality
     image: PILImage.Image = None
 
     def __init__(
@@ -30,8 +33,6 @@ class ImageFile:
         else:
             raise Exception("No image provided.")
 
-        self.quality = ImageQuality(self.image)
-
     def as_numpy_array(self) -> np.ndarray:
         return np.array(self.image)
 
@@ -47,27 +48,16 @@ class ImageFile:
         image = self.resize((new_width, new_height))
         return ImageFile(image=image.image)
 
-    def test_resize_quality(self, width: int) -> float:
-        resized_image = self.resize_by_width(width)
-        original_brisque_score = self.quality.brisque(self.image)
-        resized_brisque_score = self.quality.brisque(resized_image.image)
+    def test_resize_quality(self, width: int) -> ImageQualityScores:
+        resized_image = self.resize_by_width(width).image
+        baseline_image = ImageNoiser.with_noise(self.image, 0.9)
 
-        print(f"Original shape: {self.image.size}")
-        print(f"Resized shape: {resized_image.image.size}")
-
-        original_clip_iqa_score = self.quality.calculate_clip_iqa(self.image)
-        noisy_clip_iqa_score = self.quality.calculate_clip_iqa(
-            self.quality.create_highly_low_scoring_image()
+        quality_assessor = ImageQualityAssessor(self.image)
+        image_quality_scores = quality_assessor.normalized_score(
+            self.image, baseline_image, resized_image
         )
-        resized_clip_iqa_score = self.quality.calculate_clip_iqa(resized_image.image)
 
-        return {
-            "original_brisque_score": original_brisque_score,
-            "resized_brisque_score": resized_brisque_score,
-            "original_clip_iqa_score": original_clip_iqa_score,
-            "noisy_clip_iqa_score": noisy_clip_iqa_score,
-            "resized_clip_iqa_score": resized_clip_iqa_score,
-        }
+        return image_quality_scores
 
     def __str__(self) -> str:
         try:
