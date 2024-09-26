@@ -164,3 +164,5 @@ cython_debug/
 test_assets/output/*
 training_data/*
 models/*
+
+.DS_Store
