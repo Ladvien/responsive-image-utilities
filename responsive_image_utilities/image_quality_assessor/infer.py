@@ -1,10 +1,11 @@
+from typing import Optional
 from PIL import Image
 import torch
 import clip
-from glob import glob
 import numpy as np
 from dataclasses import dataclass
 from pathlib import Path
+from PIL import Image as PILImage
 
 from responsive_image_utilities.image_quality_assessor.train import MLP
 
@@ -37,7 +38,18 @@ class ImageQualityAssessor:
             config.clip_model_name, device=config.device
         )
 
-    def score_image(self, pil_image: Image) -> float:
+    def score(
+        self,
+        *,
+        pil_image: Optional[PILImage.Image] = None,
+        image_path: Optional[str] = None
+    ):
+        if pil_image is None and image_path is None:
+            raise ValueError("Either pil_image or image_path must be provided")
+
+        if pil_image is None:
+            pil_image = Image.open(image_path)
+
         image = self.preprocess(pil_image).unsqueeze(0).to(self.config.device)
 
         with torch.no_grad():

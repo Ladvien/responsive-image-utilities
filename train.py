@@ -35,5 +35,5 @@ assessor = ImageQualityAssessor(
 image_paths = glob("tests/test_assets/images/**/*.png", recursive=True)
 
 for image_path in image_paths:
-    score = assessor.score_image(image_path)
+    score = assessor.score(image_path)
     print(f"Score: {score} for {image_path}")

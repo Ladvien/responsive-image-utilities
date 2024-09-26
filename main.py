@@ -20,5 +20,5 @@ iqa_assessor = ImageQualityAssessor(config)
 
 for image_path in image_paths:
     print(
-        f"Assessing image: {image_path.path} has score of {iqa_assessor.score_image(image_path.load())}"
+        f"Assessing image: {image_path.path} has score of {iqa_assessor.score(pil_image=image_path.load())}"
     )
