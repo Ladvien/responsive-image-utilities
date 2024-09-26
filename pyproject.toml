@@ -8,18 +8,13 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-rich = "^13.8.0"
 pillow = "^10.4.0"
-sewar = "^0.4.6"
 piq = "^0.8.0"
 torchvision = "^0.19.1"
-matplotlib = "^3.9.2"
-perlin-numpy = {git = "https://github.com/pvigier/perlin-numpy"}
 
 # The following should probably be moved to dev dependencies
 torch = "^2.4.0"
 pytorch-lightning = "^2.4.0"
-pandas = "^2.2.3"
 clip = { git ="https://github.com/openai/CLIP.git"}
 
 [tool.poetry.group.dev.dependencies]

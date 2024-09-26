@@ -12,9 +12,6 @@ A module for creating responsive images, with a simple API.
 - HTML
 - Folder
 
-```py
-srcets = ImageFolder('./images').set_output_folder('./output')
-```
 
 ### Reads
 - [Adding Noise to Images](https://medium.com/@ms_somanna/guide-to-adding-noise-to-your-data-using-python-and-numpy-c8be815df524)
@@ -30,4 +27,19 @@ srcets = ImageFolder('./images').set_output_folder('./output')
 
 
 ## TODO:
+- Rework the API to normalize image score.
+
+
+## Done:
 - Add license and attribution (https://opensource.stackexchange.com/questions/8096/how-can-i-correctly-apply-the-apache-2-0-licence-to-contributed-code-from-an-exi)
+
+```md
+### Summary Checklist:
+1. **LICENSE file**: Include the full Apache 2.0 license text.
+2. **NOTICE file**: Acknowledge the use of the original project, along with attribution and a URL if available.
+3. **Copyright retention**: Retain copyright notices in the original files.
+4. **Modifications**: Clearly indicate any modifications you've made.
+5. **README/Documentation**: Add a mention of the Apache 2.0 code and attribution to the original authors in your documentation.
+
+By following these steps, you'll ensure that you're correctly attributing the code and complying with the requirements of the Apache License 2.0.
+```
