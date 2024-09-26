@@ -76,12 +76,10 @@ class IQATrainerConfig:
     data_loader_config = DataLoaderConfig()
 
     def __post_init__(self):
-        print(Path(self.model_save_folder))
         path = Path(self.model_save_folder + "/")
         path.mkdir(exist_ok=True, parents=True)
 
         self.model_save_path = path / self.model_save_name
-        print(self.model_save_path)
 
 
 class IQATrainer:
