@@ -27,3 +27,7 @@ srcets = ImageFolder('./images').set_output_folder('./output')
 - [Package Contain Algorithms Above](https://github.com/andrewekhalel/sewar)
 #### Machine Learning Approaches
 - [Reddit ML Quality Assessment](https://www.reddit.com/r/MachineLearning/comments/12v7jew/d_is_accurately_estimating_image_quality_even/)
+
+
+## TODO:
+- Add license and attribution (https://opensource.stackexchange.com/questions/8096/how-can-i-correctly-apply-the-apache-2-0-licence-to-contributed-code-from-an-exi)

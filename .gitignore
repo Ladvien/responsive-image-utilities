@@ -162,3 +162,5 @@ cython_debug/
 #.idea/
 
 test_assets/output/*
+training_data/*
+models/*
