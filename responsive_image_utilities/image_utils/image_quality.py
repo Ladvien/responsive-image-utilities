@@ -1,36 +1,8 @@
 from __future__ import annotations  # Needed for type hinting
 from dataclasses import dataclass, asdict
 from PIL import Image as PILImage
-import torch
-import piq
 
-
-from responsive_image_utilities.image_noiser import ImageNoiser
-from responsive_image_utilities.utils import map_value, preprocess_image
-
-
-@dataclass
-class BrisqueScore:
-    original_image_score: float
-    corrupted_image_score: float
-    new_image_score: float
-    severity_used: float
-    normalized_score: float
-
-
-@dataclass
-class ClipIQAScore:
-    original_image_score: float
-    corrupted_image_score: float
-    new_image_score: float
-    severity_used: float
-    normalized_score: float
-
-
-@dataclass
-class ImageQualityScores:
-    brisque: BrisqueScore
-    clip_iqa: ClipIQAScore
+from .utils import map_value, preprocess_image
 
 
 class ImageQualityAssessor:
@@ -101,26 +73,6 @@ class ImageQualityAssessor:
             brisque=brisque_score,
             clip_iqa=clip_iqa_score,
         )
-
-    def calculate_clip_iqa(self, image: PILImage.Image) -> float:
-        image_tensor = preprocess_image(image)
-        max_value = image_tensor.max().item()
-        if max_value > 1.0:
-            image_tensor = image_tensor / 255.0
-
-        image_clip_iqa_index = piq.CLIPIQA(data_range=1.0).to(image_tensor)(
-            image_tensor.clone().permute(2, 0, 1)[None, ...]
-        )[0][0]
-
-        return image_clip_iqa_index.item()
-
-    def calculate_brisque(self, image: PILImage.Image) -> float:
-        image_tensor = preprocess_image(image)
-        image_tensor = image_tensor.permute(2, 0, 1)[None, ...] / 255.0
-        brisque_index: torch.Tensor = piq.brisque(
-            image_tensor, data_range=1.0, reduction="none"
-        )
-        return brisque_index.item()
 
     def __dict__(self) -> dict[str, float]:
         return asdict(self)

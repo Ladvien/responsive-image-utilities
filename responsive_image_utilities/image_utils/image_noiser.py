@@ -2,7 +2,7 @@ from __future__ import annotations  # Needed for type hinting
 
 from PIL import Image as PILImage
 import numpy as np
-from responsive_image_utilities.utils import map_value
+from .utils import map_value
 
 
 class ImageNoiser:

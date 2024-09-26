@@ -37,8 +37,7 @@ class ImageQualityAssessor:
             config.clip_model_name, device=config.device
         )
 
-    def score_image(self, image_path: str) -> float:
-        pil_image = Image.open(image_path).convert("RGBA")
+    def score_image(self, pil_image: Image) -> float:
         image = self.preprocess(pil_image).unsqueeze(0).to(self.config.device)
 
         with torch.no_grad():

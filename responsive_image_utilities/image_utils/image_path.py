@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from PIL import Image as PILImage
 import numpy as np
 
-from responsive_image_utilities.utils import ImageChecker
+from .utils import ImageChecker
 
 
 @dataclass

@@ -82,7 +82,7 @@ class IQATrainerConfig:
         self.model_save_path = path / self.model_save_name
 
 
-class IQATrainer:
+class ImageQualityAssessmentTrainer:
 
     def __init__(
         self,
@@ -227,4 +227,4 @@ if __name__ == "__main__":
         model_save_name="linear_predictor_rn50x64_mse.pth",
     )
 
-    IQATrainer(config)
+    ImageQualityAssessmentTrainer(config)

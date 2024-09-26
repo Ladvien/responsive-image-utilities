@@ -3,10 +3,9 @@ from typing import List
 from sewar.full_ref import uqi, sam, scc
 import numpy as np
 
+from PIL import Image as PILImage
 
-from responsive_image_utilities.image_file import ImageFile
-from responsive_image_utilities.image_path import ImagePath
-from responsive_image_utilities.utils import ImageChecker
+from .image_path import ImagePath
 
 
 class ImageLoader:
@@ -24,9 +23,7 @@ class ImageLoader:
 
         self.image_paths = [ImagePath(path) for path in raw_image_paths]
 
-    def load_images(self) -> List[ImageFile]:
+    def load_images(self) -> List[ImagePath]:
         return [
-            ImageFile(image_path=image_path)
-            for image_path in self.image_paths
-            if image_path.is_valid_image()
+            image_path for image_path in self.image_paths if image_path.is_valid_image()
         ]
