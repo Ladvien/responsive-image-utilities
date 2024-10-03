@@ -16,11 +16,16 @@ torchvision = "^0.19.1"
 torch = "^2.4.0"
 pytorch-lightning = "^2.4.0"
 clip = { git ="https://github.com/openai/CLIP.git"}
+open-clip-torch = "^2.26.1"
+pandas = "^2.2.3"
+pyarrow = "^17.0.0"
+rich = "^13.8.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
 black = "^24.8.0"
 ruff = "^0.6.4"
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
