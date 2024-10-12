@@ -166,3 +166,4 @@ training_data/*
 models/*
 
 .DS_Store
+*.csv
