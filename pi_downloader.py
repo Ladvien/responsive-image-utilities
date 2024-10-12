@@ -4,7 +4,7 @@ import requests
 import os
 import shutil
 from multiprocessing.pool import ThreadPool
-from random import shuffle
+from random import shuffle, sample
 
 """
 Should fire up a downloader in the background:
@@ -47,19 +47,15 @@ def fetch_image(data):
 
 
 
+INPUT_FILE = "/mnt/datadrive/laion-aesthetics-12m-umap-urls-and-hashes.csv"
 OUTPUT_FOLDER = "/mnt/datadrive/images/laion-aesthetics-12m-umap-images"
-
-df = pd.read_csv(
-    "/mnt/datadrive/laion-aesthetics-12m-umap-urls-and-hashes.csv", 
-    nrows=1000
-)
-
-df = np.array(df)
-np.random.shuffle(df)
-df = pd.DataFrame(df)
+SAMPLE_SIZE = 1000
+NUM_OF_ROWS = sum(1 for line in open(INPUT_FILE)) - 1
+skip = sorted(sample(range(1, NUM_OF_ROWS + 1), NUM_OF_ROWS - SAMPLE_SIZE))
+df = pd.read_csv(INPUT_FILE, skiprows=skip)
 
 results = ThreadPool(8).imap_unordered(
     fetch_image, df.itertuples()
 )
-
+del df
 [path for path in results]
