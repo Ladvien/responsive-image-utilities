@@ -1,10 +1,12 @@
 import os
 from time import sleep
 
-BATTERY_DELAY = 3600
+BATTERY_DELAY = 150
 
-NUMBER_OF_SESSIONS = 3
+NUMBER_OF_SESSIONS = 5
 SECONDS_BETWEEN_SESSION_CREATION = 60
+
+count_files_cmd = "watch -n 10 'ls -1 | wc -l'"
 
 while True:
     for i in range(NUMBER_OF_SESSIONS):

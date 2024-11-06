@@ -5,7 +5,7 @@ import os
 import shutil
 from multiprocessing.pool import ThreadPool
 from random import shuffle, sample
-
+from rich import print
 """
 Should fire up a downloader in the background:
 screen -Sdm  python pi_downloader.py 
@@ -32,7 +32,7 @@ def fetch_image(data):
             print(f"Skipping {url}, already downloaded.")
             return
 
-        response = requests.get(url, stream=True)
+        response = requests.get(url, stream=True, verify=False)
         if response.status_code == 200:
             with open(
                 os.path.join(OUTPUT_FOLDER, f"{hash}{get_image_file_extension(url)}"),
@@ -47,9 +47,10 @@ def fetch_image(data):
 
 
 
-INPUT_FILE = "/mnt/datadrive/laion-aesthetics-12m-umap-urls-and-hashes.csv"
-OUTPUT_FOLDER = "/mnt/datadrive/images/laion-aesthetics-12m-umap-images"
-SAMPLE_SIZE = 1000
+INPUT_FILE = "/media/ladvien/T7/laion-aesthetics-12m-umap-urls-and-hashes.csv"
+OUTPUT_FOLDER = "/media/ladvien/T7/images/laion-aesthetics-12m-umap-images/"
+SAMPLE_SIZE = 5000
+NUMBER_OF_THREADS = 100
 NUM_OF_ROWS = sum(1 for line in open(INPUT_FILE)) - 1
 skip = sorted(sample(range(1, NUM_OF_ROWS + 1), NUM_OF_ROWS - SAMPLE_SIZE))
 df = pd.read_csv(INPUT_FILE, skiprows=skip)
