@@ -51,7 +51,7 @@ def fetch_image(data):
                 print(f"Skipping {url}, already downloaded.")
                 return
 
-        response = requests.get(url, stream=True, verify=False)
+        response = requests.get(url, stream=True, verify=False, timeout=3)
         if response.status_code == 200:
             with open(
                 os.path.join(OUTPUT_FOLDER, f"{hash}{get_image_file_extension(url)}"),
