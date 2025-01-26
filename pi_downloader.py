@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import pandas as pd
 
 # df = pd.read_parquet("hf://datasets/dclure/laion-aesthetics-12m-umap/train.parquet")
@@ -11,15 +12,21 @@ import pandas as pd
 #     print(row)
 
 =======
+=======
+>>>>>>> ee54e15c268b68457a35ba701f03d33ccae4221f
 
 
 import pandas as pd
 import numpy as np
+<<<<<<< HEAD
+>>>>>>> ee54e15c268b68457a35ba701f03d33ccae4221f
+=======
 >>>>>>> ee54e15c268b68457a35ba701f03d33ccae4221f
 import requests
 import os
 import shutil
 from multiprocessing.pool import ThreadPool
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 from random import shuffle
@@ -99,6 +106,8 @@ df = pd.read_parquet(
 
 print(df.head())
 =======
+=======
+>>>>>>> ee54e15c268b68457a35ba701f03d33ccae4221f
 from random import shuffle, sample
 from rich import print
 
@@ -166,4 +175,7 @@ df = df[(df['filename'] == '') | (df['filename'].isna())]
 results = ThreadPool(8).imap_unordered(fetch_image, df.itertuples())
 del df
 [path for path in results]
+<<<<<<< HEAD
+>>>>>>> ee54e15c268b68457a35ba701f03d33ccae4221f
+=======
 >>>>>>> ee54e15c268b68457a35ba701f03d33ccae4221f
