@@ -1,6 +1,5 @@
 from glob import glob
 from typing import List
-from sewar.full_ref import uqi, sam, scc
 import numpy as np
 
 from PIL import Image as PILImage

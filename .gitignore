@@ -167,3 +167,7 @@ models/*
 
 .DS_Store
 *.csv
+
+failed.txt
+multi_downloader.py
+fs.py

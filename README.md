@@ -50,3 +50,15 @@ https://huggingface.co/datasets/recastai/coyo-10m-aesthetic
 
 By following these steps, you'll ensure that you're correctly attributing the code and complying with the requirements of the Apache License 2.0.
 ```
+
+
+### Handling Dataset
+Why files take more space on an `exfat` than `ext4`.
+https://superuser.com/questions/1165762/same-data-takes-more-space-on-external-hard-disk
+
+#### Updating Input DF
+1. Run `fs.py` to ensure all filles are moved to their appropriate folder
+2. Use the new `catalog.csv` file as the input for the `merge_catalog.csv`
+3. This will produced a new `merged.csv` file.
+4. On the downloading device, replace `laion-aesthetics-12m-umap-urls-and-hashes.csv` with `merged.csv`.
+5. Restart the `pi_downloader.py`
