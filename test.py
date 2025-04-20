@@ -13,18 +13,19 @@ import requests
 import os
 import shutil
 from multiprocessing.pool import ThreadPool
-from rich import print
+# from rich import print
 
 from random import shuffle
 
-OUTPUT_FOLDER = "/Users/ladvien/responsive-image-utilities/training_data/laion-aesthetics-12m-umap-images"
+# OUTPUT_FOLDER = "/srv/nfs/datadrive/images/laion-aesthetics-12m-umap-images"
+OUTPUT_FOLDER = "/mnt/datadrive/images/laion-aesthetics-12m-umap-images"
 
 
 # df = pd.read_parquet("hf://datasets/dclure/laion-aesthetics-12m-umap/train.parquet")
 # df.to_parquet("laion-aesthetics-12m-umap.parquet")
 
-df = pd.read_parquet(
-    "/Users/ladvien/responsive-image-utilities/training_data/laion-aesthetics-12m-umap.parquet"
+df = pd.read_csv(
+    "/mnt/datadrive/laion-aesthetics-12m-umap-urls-and-hashes.csv"
 )
 
 
@@ -43,7 +44,7 @@ def get_image_file_extension(url):
         return ".unknown"
 
 
-url_and_hash = df.apply(lambda row: (row[0], row[8]), axis=1).tolist()
+url_and_hash = df.apply(lambda row: (row[0], row[1]), axis=1).tolist()
 number_of_images = len(url_and_hash)
 shuffle(url_and_hash)
 del df
@@ -58,8 +59,6 @@ number_of_images_left_to_download = len(url_and_hash_of_files_not_yet_downloaded
 print(
     f"The percentage of images left to download is: {number_of_images_left_to_download / number_of_images * 100:.2f}%"
 )
-input()
-
 
 def fetch_image(data):
     url, hash = data
