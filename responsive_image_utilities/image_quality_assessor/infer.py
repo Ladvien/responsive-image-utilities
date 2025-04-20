@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from PIL import Image as PILImage
 
-from responsive_image_utilities.image_quality_assessor.train import MLP
+from responsive_image_utilities.image_quality_assessor.train.basic import MLP
 
 
 @dataclass

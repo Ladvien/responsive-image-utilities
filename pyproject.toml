@@ -20,6 +20,7 @@ open-clip-torch = "^2.26.1"
 pandas = "^2.2.3"
 pyarrow = "^17.0.0"
 rich = "^13.8.1"
+flet = "^0.27.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

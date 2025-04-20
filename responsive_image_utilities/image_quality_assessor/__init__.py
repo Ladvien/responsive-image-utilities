@@ -1,1 +1,1 @@
-from .train import IQATrainerConfig, ImageQualityAssessmentTrainer
+from .train.basic import IQATrainerConfig, ImageQualityAssessmentTrainer

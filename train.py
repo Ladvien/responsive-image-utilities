@@ -21,7 +21,7 @@ config = IQATrainerConfig(
     epochs=30,
 )
 
-# ImageQualityAssessmentTrainer(config)
+ImageQualityAssessmentTrainer(config)
 
 assessor = ImageQualityAssessor(
     ImageQualityAssessorConfig(
@@ -35,5 +35,5 @@ assessor = ImageQualityAssessor(
 image_paths = glob("tests/test_assets/images/**/*.png", recursive=True)
 
 for image_path in image_paths:
-    score = assessor.score(image_path)
+    score = assessor.score(image_path=image_path)
     print(f"Score: {score} for {image_path}")

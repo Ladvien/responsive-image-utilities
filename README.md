@@ -23,6 +23,9 @@ A module for creating responsive images, with a simple API.
 - [Comprehensive Image Quality Detection Algorithms](https://medium.com/@jaikochhar06/how-to-evaluate-image-quality-in-python-a-comprehensive-guide-e486a0aa1f60)
 - [Package Contain Algorithms Above](https://github.com/andrewekhalel/sewar)
 
+### Building a Labeler
+- [Flet](https://flet.dev/docs/cookbook/keyboard-shortcuts)
+
 ### Machine Learning Approaches
 - [Reddit ML Quality Assessment](https://www.reddit.com/r/MachineLearning/comments/12v7jew/d_is_accurately_estimating_image_quality_even/)
 
