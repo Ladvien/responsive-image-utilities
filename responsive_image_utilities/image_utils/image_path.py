@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from PIL import Image as PILImage
-import numpy as np
+import os
+import sys
 
 from .utils import ImageChecker
 
@@ -18,4 +19,7 @@ class ImagePath:
         return image
 
     def is_valid_image(self) -> bool:
+        if os.path.isdir(self.path):
+            return False
+
         return ImageChecker.is_valid_image(self.path)

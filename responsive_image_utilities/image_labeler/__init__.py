@@ -5,7 +5,7 @@ from dataclasses import dataclass, asdict
 
 
 @dataclass
-class ImageLoaderConfig:
+class LabelerImageLoaderConfig:
     images_dir: str
     allowed_exts: list | None = None
 
@@ -22,8 +22,8 @@ class ImageLoaderConfig:
             raise ValueError(f"{self.images_dir} is not a directory.")
 
 
-class ImageLoader:
-    def __init__(self, config: ImageLoaderConfig):
+class LabelerImageLoader:
+    def __init__(self, config: LabelerImageLoaderConfig):
         self.config = config
 
     def total_count(self):
@@ -77,7 +77,7 @@ class BinaryLabelerPageConfig:
     theme_mode: ft.ThemeMode = ft.ThemeMode.DARK
 
     # ImageLoaderConfig
-    image_loader_config: ImageLoaderConfig | None = None
+    image_loader_config: LabelerImageLoaderConfig | None = None
 
     # Label path
     csv_path: str | None = None
@@ -87,7 +87,7 @@ class BinaryLabelerPageConfig:
             self.csv_path = "labels.csv"
 
         if self.image_loader_config is None:
-            self.image_loader_config = ImageLoaderConfig()
+            self.image_loader_config = LabelerImageLoaderConfig()
 
         # Check if the images directory exists
         if not os.path.exists(self.csv_path):
@@ -105,21 +105,19 @@ class BinaryLabelerPageConfig:
 class LabelAppFactory:
 
     @staticmethod
-    def create_labeler_app(self, config: BinaryLabelerPageConfig):
+    def create_labeler_app(config: BinaryLabelerPageConfig):
         """
         Create a labeler app using the provided configuration.
         """
 
         def labeler_app(page: ft.Page):
-            config = BinaryLabelerPageConfig()
-
             # Setup
             page.title = config.title
             page.window_width = config.window_width
             page.window_height = config.window_height
             page.window_resizable = config.window_resizable
 
-            image_loader = ImageLoader(config.image_loader_config)
+            image_loader = LabelerImageLoader(config.image_loader_config)
             label_loader = LabelLoader(config.csv_path)
 
             if image_loader.total_count() == 0:
