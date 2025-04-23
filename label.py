@@ -3,8 +3,10 @@ import os
 from responsive_image_utilities.image_labeler import (
     LabelAppFactory,
     BinaryLabelerPageConfig,
+    LabelerImageLoaderConfig,
 )
 from responsive_image_utilities.image_utils import ImageLoader
+from responsive_image_utilities.image_utils import ImageNoiser
 
 # WILO: Set the path to your images directory
 SOURCE_IMAGES_PATH = "/Users/ladvien/ladvien.com/content/images"
@@ -13,11 +15,23 @@ TRAIN_IMAGES_OUTPUT_PATH = "training_data/aiqa"
 os.makedirs(TRAIN_IMAGES_OUTPUT_PATH, exist_ok=True)
 
 # Create noisy images
-image_loader = ImageLoader(SOURCE_IMAGES_PATH, TRAIN_IMAGES_OUTPUT_PATH)
-source_images = image_loader.load_images()
-print(f"Found {len(source_images)} images.")
+# image_loader = ImageLoader(SOURCE_IMAGES_PATH, TRAIN_IMAGES_OUTPUT_PATH)
+# source_images = image_loader.load_images()
+# print(f"Found {len(source_images)} images.")
 
-quit()
+# Image noiser
+# noiser = ImageNoiser()
+# noiser.noise_images(
+#     image_loader=image_loader,
+#     output_folder=TRAIN_IMAGES_OUTPUT_PATH,
+#     severity_range=(0.20, 0.95),
+#     noise_functions=[
+#         # ImageNoiser.add_gaussian_noise,
+#         ImageNoiser.add_jpeg_compression,
+#     ],
+#     # samples=5000,
+# )
+
 
 config = BinaryLabelerPageConfig(
     title="Binary Image Labeler",
@@ -26,7 +40,8 @@ config = BinaryLabelerPageConfig(
     window_resizable=True,
     theme_mode=ft.ThemeMode.DARK,
     image_loader_config=LabelerImageLoaderConfig(
-        images_dir=TRAIN_IMAGES_OUTPUT_PATH,
+        images_dir=SOURCE_IMAGES_PATH,
+        output_dir=TRAIN_IMAGES_OUTPUT_PATH,
     ),
 )
 

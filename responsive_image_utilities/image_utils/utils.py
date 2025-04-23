@@ -1,6 +1,6 @@
 from PIL import Image as PILImage
 import torch
-import piq
+import os
 import torchvision.transforms.functional as tf
 
 
@@ -8,6 +8,9 @@ class ImageChecker:
 
     @staticmethod
     def is_valid_image(path: str) -> bool:
+        if os.path.isdir(path):
+            return False
+
         try:
             PILImage.open(path)
             return True
