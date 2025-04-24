@@ -60,21 +60,24 @@ class LabelManager:
         image_path = self.get_image_path()
 
         new_image = image_path.load()
-        noisy_image_path = ImagePath(
-            os.path.join(
-                self.get_output_directory(),
-                f"{image_path.name}_noisy.jpg",
-            )
+        noisy_image_path = os.path.join(
+            self.get_output_directory(),
+            f"{image_path.name}_noisy.jpg",
         )
+        new_image.save(noisy_image_path, quality=95)
+        noisy_image_path = ImagePath(noisy_image_path)
+
         min_noise, max_noise = self.config.severity_range
         noise_level = uniform(min_noise, max_noise)
-        noisy_image = ImageNoiser.add_jpeg_compression(new_image, noise_level)
+        noisy_image = ImageNoiser.add_jpeg_compression(
+            new_image, noise_level, self.config.temporary_dir
+        )
         noisy_image.save(noisy_image_path.path, quality=95)
 
         return image_path, noisy_image_path
 
     def get_image_path(self) -> ImagePath:
-        return ImagePath(self.image_loader.image_paths[self.index].path)
+        return self.image_loader.image_paths[self.index]
 
     def image_count(self) -> int:
         return len(self.image_loader.image_paths)

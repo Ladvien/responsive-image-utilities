@@ -50,6 +50,7 @@ class LabelAppFactory:
                     label_manager.save_label("unacceptable")
 
                 image_labeler.update_content()
+                image_labeler.update()
 
             page.on_keyboard_event = on_key
 

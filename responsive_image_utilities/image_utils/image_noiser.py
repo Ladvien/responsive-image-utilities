@@ -4,6 +4,7 @@ from PIL import Image as PILImage
 from random import choice, shuffle, uniform
 import numpy as np
 from uuid import uuid4
+import os
 
 from responsive_image_utilities.image_utils.image_loader import ImageLoader
 from .utils import map_value
@@ -99,8 +100,12 @@ class ImageNoiser:
 
     @classmethod
     def add_jpeg_compression(
-        cls, image: PILImage.Image, severity: float = 0.9
+        cls, image: PILImage.Image, severity: float = 0.9, temp_directory: str = None
     ) -> PILImage.Image:
         quality = int(map_value(severity, 1, 0, 0, 100))
-        image.save("temp.jpg", quality=quality)
-        return PILImage.open("temp.jpg")
+        temp_directory = temp_directory or "."
+        if os.path.exists(temp_directory) is False:
+            os.makedirs(temp_directory)
+        temp_path = f"{temp_directory}/temp.jpg"
+        image.save(temp_path, "JPEG", quality=quality)
+        return PILImage.open(temp_path)

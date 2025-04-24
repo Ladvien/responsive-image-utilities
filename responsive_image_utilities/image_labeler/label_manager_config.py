@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple
 class LabelManagerConfig:
     images_dir: str
     output_dir: str
+    temporary_dir: str
     label_csv_path: str | None = None
     allowed_exts: List[str] = field(
         default_factory=lambda: [".jpg", ".jpeg", ".png", ".gif"]

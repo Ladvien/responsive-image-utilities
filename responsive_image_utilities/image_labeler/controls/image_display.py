@@ -59,7 +59,6 @@ class ImageLabelerControl(ft.Row):
             self.original.src_base64 = None
             self.noisy.src_base64 = None
         else:
-            print(f"Loading image pair: {image_path} and {noisy_image_path}")
             self.original.src_base64 = image_path.load_as_base64()
             self.noisy.src_base64 = noisy_image_path.load_as_base64()
             self.progress_text.value = f"{self.label_manager.current_index()}/{self.label_manager.image_count()} labeled"

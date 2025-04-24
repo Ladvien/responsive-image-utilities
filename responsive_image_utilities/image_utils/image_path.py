@@ -13,7 +13,7 @@ class ImagePath:
     path: str
     name: str | None = None
 
-    def load(self, show_on_load: bool = False) -> PILImage:
+    def load(self, show_on_load: bool = False) -> PILImage.Image:
         image = PILImage.open(self.path).convert("RGB")
         if show_on_load:
             print(f"Loading image from path: {self.path}")
@@ -39,5 +39,10 @@ class ImagePath:
         return ImageChecker.is_valid_image(self.path)
 
     def __post_init__(self):
+        if not os.path.exists(self.path):
+            raise FileNotFoundError(f"Image not found at path: {self.path}")
+        if not os.path.isfile(self.path):
+            raise ValueError(f"Path is not a file: {self.path}")
+
         if not self.name:
             self.name = os.path.basename(self.path)

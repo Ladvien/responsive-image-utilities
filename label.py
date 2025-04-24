@@ -15,6 +15,7 @@ from responsive_image_utilities.image_utils import ImageNoiser
 # WILO: Set the path to your images directory
 SOURCE_IMAGES_PATH = "/Users/ladvien/ladvien.com/content/images"
 TRAIN_IMAGES_OUTPUT_PATH = "training_data/aiqa"
+TEMPORARY_IMAGES_OUTPUT_PATH = f"{TRAIN_IMAGES_OUTPUT_PATH}/temporary"
 
 os.makedirs(TRAIN_IMAGES_OUTPUT_PATH, exist_ok=True)
 
@@ -46,6 +47,7 @@ config = LabelerConfig(
     label_manager_config=LabelManagerConfig(
         images_dir=SOURCE_IMAGES_PATH,
         output_dir=TRAIN_IMAGES_OUTPUT_PATH,
+        temporary_dir=TEMPORARY_IMAGES_OUTPUT_PATH,
     ),
 )
 
