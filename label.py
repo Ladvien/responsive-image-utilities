@@ -1,9 +1,13 @@
 import flet as ft
 import os
+
+from responsive_image_utilities.image_labeler import LabelAppFactory
 from responsive_image_utilities.image_labeler import (
-    LabelAppFactory,
-    BinaryLabelerPageConfig,
-    LabelerImageLoaderConfig,
+    LabelerConfig,
+)
+
+from responsive_image_utilities.image_labeler.label_manager_config import (
+    LabelManagerConfig,
 )
 from responsive_image_utilities.image_utils import ImageLoader
 from responsive_image_utilities.image_utils import ImageNoiser
@@ -33,13 +37,13 @@ os.makedirs(TRAIN_IMAGES_OUTPUT_PATH, exist_ok=True)
 # )
 
 
-config = BinaryLabelerPageConfig(
+config = LabelerConfig(
     title="Binary Image Labeler",
     window_width=800,
     window_height=700,
     window_resizable=True,
     theme_mode=ft.ThemeMode.DARK,
-    image_loader_config=LabelerImageLoaderConfig(
+    label_manager_config=LabelManagerConfig(
         images_dir=SOURCE_IMAGES_PATH,
         output_dir=TRAIN_IMAGES_OUTPUT_PATH,
     ),

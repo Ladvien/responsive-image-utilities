@@ -7,9 +7,10 @@ from .image_path import ImagePath
 
 class ImageLoader:
 
-    def __init__(self, input_folder: str, output_folder: str):
+    def __init__(self, input_folder: str, extensions: List[str] = None):
         self.input_folder = input_folder
-        self.output_folder = output_folder
+
+        self.extensions = extensions if extensions else [".jpg", ".jpeg", ".png"]
 
         raw_image_paths = glob(f"{input_folder}/**/*", recursive=True)
 
@@ -18,15 +19,26 @@ class ImageLoader:
 
         raw_image_paths.sort()
 
-        self.image_paths = [ImagePath(path) for path in raw_image_paths]
+        filtered_image_paths = [
+            path for path in raw_image_paths if path.endswith(tuple(self.extensions))
+        ]
+
+        if filtered_image_paths == [] or filtered_image_paths is None:
+            raise Exception(
+                f"No files found in '{self.input_folder}' with extensions {self.extensions}."
+            )
+
+        if len(filtered_image_paths) == 0:
+            raise Exception(
+                f"No files found in '{self.input_folder}' with extensions {self.extensions}."
+            )
+
+        self.image_paths = [ImagePath(path) for path in filtered_image_paths]
 
     def load_images(self) -> List[ImagePath]:
         return [
             image_path for image_path in self.image_paths if image_path.is_valid_image()
         ]
-
-    def total_count(self) -> int:
-        return len(self.image_paths)
 
     def get_all_images(self) -> List[PILImage.Image]:
         return [image_path.load() for image_path in self.image_paths]
