@@ -10,6 +10,7 @@ class LabelManagerConfig:
     output_dir: str
     temporary_dir: str
     label_csv_path: str | None = None
+    overwrite_label_csv: bool = False
     allowed_exts: List[str] = field(
         default_factory=lambda: [".jpg", ".jpeg", ".png", ".gif"]
     )

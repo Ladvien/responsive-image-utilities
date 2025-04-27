@@ -1,9 +1,7 @@
 import flet as ft
 
-from responsive_image_utilities.image_labeler import (
-    LabelerConfig,
-)
-from responsive_image_utilities.image_labeler.controls.image_display import (
+from responsive_image_utilities.image_labeler import LabelerConfig
+from responsive_image_utilities.image_labeler.controls.labeler_control import (
     ImageLabelerControl,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
@@ -23,12 +21,15 @@ class LabelAppFactory:
             page.window_width = config.window_width
             page.window_height = config.window_height
             page.window_resizable = config.window_resizable
-            # page.window.maximized = True
+            page.theme_mode = ft.ThemeMode.SYSTEM
+            page.window.always_on_top = True
+            page.window.focused = True
 
-            # Hidden input field to suppress macOS "beep"
-            # Note, if this field is made invisible, you will get
-            # an annoying "beep" sound
-            silent_focus = ft.TextField(visible=True, autofocus=True, width=0, height=0)
+            silent_focus = ft.TextField(
+                visible=False,
+                disabled=False,
+                autofocus=True,
+            )
 
             label_manager = LabelManager(config.label_manager_config)
 
@@ -36,23 +37,16 @@ class LabelAppFactory:
                 page.add(ft.Text("No images found."))
                 return
 
-            image_labeler = ImageLabelerControl(
-                label_manager,
-            )
-
             def on_key(event: ft.KeyboardEvent):
-                if label_manager.current_index() >= label_manager.image_count():
-                    return
+                image_labeler.handle_keyboard_event(event)
 
-                if event.key == "Arrow Right":
-                    label_manager.save_label("acceptable")
-                elif event.key == "Arrow Left":
-                    label_manager.save_label("unacceptable")
+            image_labeler = ImageLabelerControl(label_manager)
 
-                image_labeler.update_content()
-                image_labeler.update()
+            # Top level keyboard event handler
+            def on_keyboard(e: ft.KeyboardEvent):
+                image_labeler.handle_keyboard_event(e)
 
-            page.on_keyboard_event = on_key
+            page.on_keyboard_event = on_keyboard
 
             page.add(
                 image_labeler,
