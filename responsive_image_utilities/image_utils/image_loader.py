@@ -1,4 +1,5 @@
 from glob import glob
+from pathlib import Path
 from typing import Iterable, List
 from PIL import Image as PILImage
 
@@ -15,23 +16,16 @@ class ImageLoader:
         else:
             self.extensions = [".jpg", ".jpeg", ".png"]
 
-        raw_image_paths = glob(f"{input_folder}/**/*", recursive=True)
+        raw_image_paths = list(Path(input_folder).rglob("*"))
 
-        if raw_image_paths == [] or raw_image_paths is None:
+        if not raw_image_paths:
             raise Exception(f"No files found in '{self.input_folder}'.")
 
         filtered_image_paths = [
-            path
-            for path in raw_image_paths
-            if path.lower().endswith(tuple(self.extensions))
+            path for path in raw_image_paths if path.suffix.lower() in self.extensions
         ]
 
-        if filtered_image_paths == [] or filtered_image_paths is None:
-            raise Exception(
-                f"No files found in '{self.input_folder}' with extensions {self.extensions}."
-            )
-
-        if len(filtered_image_paths) == 0:
+        if not filtered_image_paths:
             raise Exception(
                 f"No files found in '{self.input_folder}' with extensions {self.extensions}."
             )
