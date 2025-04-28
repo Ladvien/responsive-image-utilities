@@ -47,6 +47,8 @@ class LabelAppFactory:
                 if handled:
                     page.update()
 
+            # NOTE: This page handler has holes.  Like no
+            # event for holding the key press.
             # page.on_keyboard_event = on_keyboard
 
             page.add(
@@ -78,7 +80,7 @@ class LabelAppFactory:
 
             # --- Background thread to update slider
             def key_capture_loop():
-                repeat_delay = 0.05  # seconds between repeats
+                repeat_delay = config.key_press_debounce_delay
                 while True:
                     moved = False
                     if pressed:

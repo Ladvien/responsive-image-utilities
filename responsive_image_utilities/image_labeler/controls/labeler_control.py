@@ -1,3 +1,4 @@
+import time
 from typing import Callable
 import flet as ft
 from rich import print
@@ -14,89 +15,90 @@ from responsive_image_utilities.image_labeler.controls.noise_slider import (
     KeyboardBasedSlider,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
+from responsive_image_utilities.image_labeler.label_manager import UnlabeledImagePair
 
 
 class ImageLabelerControl(ft.Column):
     def __init__(self, label_manager: LabelManager):
-
         super().__init__()
 
         self.label_manager = label_manager
+
+        # Get initial image pair
+        self.pair_to_label: UnlabeledImagePair = self.label_manager.get_unlabeled()
+
+        # Controls
+        self.image_pair_viewer = ImagePairViewer(self.pair_to_label)
 
         self.instructions = Instructions()
         self.progress_text = ft.Text()
         self.progress_bar = ft.ProgressBar(width=300)
 
-        self.original = ft.Image(
-            fit=ft.ImageFit.CONTAIN,
-            expand=True,
-            animate_size=ft.Animation(
-                duration=300, curve=ft.AnimationCurve.EASE_IN_OUT
-            ),
-        )
-        self.noisy = ft.Image(
-            fit=ft.ImageFit.CONTAIN,
-            expand=True,
-            animate_size=ft.Animation(
-                duration=300, curve=ft.AnimationCurve.EASE_IN_OUT
-            ),
-        )
-
         self.keyboard_based_slider = KeyboardBasedSlider()
-        # self.slider = ft.Slider(min=0.0, max=1.0)
 
         self.controls = [
-            ImagePairViewer(self.original, self.noisy),
+            self.image_pair_viewer,
             LabelingProgress(self.instructions, self.progress_text, self.progress_bar),
             self.keyboard_based_slider,
-            # self.slider,
         ]
 
-        self.pair_to_label = self.label_manager.get_unlabeled()
-
         self.expand = True
+
+        # --- Debounce Timer
+        self._last_label_time = 0.0  # seconds since epoch
+        self._debounce_interval = 0.5  # 0.5 seconds
+
         self.update_content()
 
     def update_content(self):
+        """Update displayed images and progress."""
         self.pair_to_label = self.label_manager.get_unlabeled()
 
         if self.pair_to_label.original_image_path is None:
             print("No more images to label.")
             self.progress_text.value = "✅ All images labeled!"
             self.progress_bar.value = 1.0
-            self.original.src_base64 = None
-            self.noisy.src_base64 = None
+            self.image_pair_viewer.original_image.src_base64 = None
+            self.image_pair_viewer.noisy_image.src_base64 = None
         else:
             print(self.pair_to_label.original_image_path)
-            self.original.src_base64 = (
-                self.pair_to_label.original_image_path.load_as_base64()
-            )
-            self.noisy.src_base64 = self.pair_to_label.noisy_image_path.load_as_base64()
-            # self.progress_text.value = f"{self.label_manager.c()}/{self.label_manager.image_count()} labeled"
-            # self.progress_bar.value = (
-            #     self.label_manager.current_index() / self.label_manager.image_count()
-            # )
+            self.image_pair_viewer.update_images(self.pair_to_label)
+            # TODO: If you want progress tracking: uncomment and finish:
+            # self.progress_text.value = f"{self.label_manager.current_index()}/{self.label_manager.image_count()} labeled"
+            # self.progress_bar.value = self.label_manager.current_index() / self.label_manager.image_count()
 
-    def handle_keyboard_event(self, key: Key | KeyCode):
+    def __create_label(self, label: str):
+        """Create and save a label for current image pair."""
+        labeled_pair = self.pair_to_label.label(label)
+        self.label_manager.save_label(labeled_pair)
+        self.update_content()
+
+    def _can_label(self) -> bool:
+        """Debounce: check if enough time has passed since last label."""
+        now = time.time()
+        if now - self._last_label_time >= self._debounce_interval:
+            self._last_label_time = now
+            return True
+        return False
+
+    def handle_keyboard_event(self, key: Key | KeyCode) -> bool:
+        """Handle keyboard events: slider and labeling."""
         if isinstance(key, KeyCode):
             return False
 
         if self.keyboard_based_slider.handle_keyboard_event(key):
             return True
 
-        if key.name not in ["right", "left"]:
-            return False
+        # Handle image labeling with debounce
+        if key.name in ("right", "left"):
+            if not self._can_label():
+                return True  # Debounced: ignore too-fast presses
 
-        label = ""
-        if key.name == "right":
-            print("Arrow Right")
-            label = "acceptable"
-        if key.name == "left":
-            print("Arrow Left")
-            label = "unacceptable"
+            if key.name == "right":
+                self.__create_label("acceptable")
+            elif key.name == "left":
+                self.__create_label("unacceptable")
 
-        labeled_pair = self.pair_to_label.label(label)
-        self.label_manager.save_label(labeled_pair)
-        self.update_content()
+            return True
 
-        return True
+        return False

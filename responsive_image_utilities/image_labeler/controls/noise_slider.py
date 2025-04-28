@@ -27,10 +27,6 @@ class KeyboardBasedSlider(ft.Row):
             max=self.max_val,
             value=self._clamp(initial_value),
             divisions=None,
-            interaction=SliderInteraction.SLIDE_THUMB,  # <-- optional, reduces taps
-            on_change=lambda e: None,  # Ignore mouse drags
-            on_change_start=lambda e: None,
-            on_change_end=lambda e: None,
         )
 
         self.controls = [self.slider]
@@ -52,10 +48,10 @@ class KeyboardBasedSlider(ft.Row):
 
     def handle_keyboard_event(self, key: Key | KeyCode):
         """Handle arrow key events. Returns True if handled."""
+
         if isinstance(key, KeyCode):
             return False
 
-        print(key)
         if key.name == "up":
             self.value += self.step
             if self._on_change_end:

@@ -18,6 +18,8 @@ class LabelerConfig:
     # ImageLoaderConfig
     label_manager_config: LabelManagerConfig | None = None
 
+    key_press_debounce_delay: float = 0.01
+
     def __post_init__(self):
         if self.label_manager_config is None:
             self.label_manager_config = LabelManagerConfig()
