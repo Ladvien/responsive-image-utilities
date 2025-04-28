@@ -63,6 +63,12 @@ class LabelWriter:
 
         return False
 
+    def get_labels(self) -> list[str]:
+        with open(self.path, "r", newline="") as f:
+            csv_reader = csv.DictReader(f)
+            labels = [row["label"] for row in csv_reader]
+        return labels
+
 
 class LabelManager:
     def __init__(self, config: LabelManagerConfig):
@@ -71,7 +77,7 @@ class LabelManager:
         self.label_writer = LabelWriter(
             self.config.label_csv_path, self.config.overwrite_label_csv
         )
-        self.labeled_image_paths = []
+        self.labeled_image_paths = self.label_writer.get_labels()
 
     def save_label(self, labeled_pair: LabeledImagePair) -> None:
         if labeled_pair.original_image_path in self.labeled_image_paths:
@@ -101,5 +107,14 @@ class LabelManager:
         noisy_image.save(noisy_image_path.path, quality=95)
         return UnlabeledImagePair(image_path, noisy_image_path)
 
-    def num_unlabeled(self) -> int:
+    def unlabeled_count(self) -> int:
         return len(self.image_loader) - len(self.labeled_image_paths)
+
+    def labeled_count(self) -> int:
+        return len(self.labeled_image_paths)
+
+    def percentage_complete(self) -> int:
+        return self.labeled_count() / self.image_loader.total()
+
+    def total(self) -> int:
+        return self.image_loader.total()

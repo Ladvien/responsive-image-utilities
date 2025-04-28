@@ -36,7 +36,7 @@ class LabelAppFactory:
 
             label_manager = LabelManager(config.label_manager_config)
 
-            if label_manager.num_unlabeled() == 0:
+            if label_manager.unlabeled_count() == 0:
                 page.add(ft.Text("No images found."))
                 return
 

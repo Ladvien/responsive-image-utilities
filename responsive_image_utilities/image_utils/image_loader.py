@@ -82,3 +82,7 @@ class ImageLoader:
     def get_image_path(self, index: int) -> ImagePath:
         """Return an ImagePath by index."""
         return self.image_paths[index]
+
+    def total(self) -> int:
+        """Return the total number of images."""
+        return len(self.image_paths)

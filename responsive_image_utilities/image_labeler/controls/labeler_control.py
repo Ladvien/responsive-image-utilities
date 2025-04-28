@@ -61,11 +61,9 @@ class ImageLabelerControl(ft.Column):
             self.image_pair_viewer.original_image.src_base64 = None
             self.image_pair_viewer.noisy_image.src_base64 = None
         else:
-            print(self.pair_to_label.original_image_path)
             self.image_pair_viewer.update_images(self.pair_to_label)
-            # TODO: If you want progress tracking: uncomment and finish:
-            # self.progress_text.value = f"{self.label_manager.current_index()}/{self.label_manager.image_count()} labeled"
-            # self.progress_bar.value = self.label_manager.current_index() / self.label_manager.image_count()
+            self.progress_text.value = f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled"
+            self.progress_bar.value = self.label_manager.percentage_complete()
 
     def __create_label(self, label: str):
         """Create and save a label for current image pair."""
