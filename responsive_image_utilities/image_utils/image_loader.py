@@ -7,10 +7,8 @@ from .image_path import ImagePath
 
 
 class ImageLoader:
-
     def __init__(self, input_folder: str, extensions: List[str] = None):
         self.input_folder = input_folder
-
         if extensions:
             self.extensions = [ext.lower() for ext in extensions]
         else:
@@ -37,9 +35,19 @@ class ImageLoader:
             path for path in potential_image_paths if path.is_valid_image()
         ]
 
+        self._index = 0  # <-- Track our position for iteration!
+
     def __iter__(self):
-        """Allow iteration over loaded ImagePath objects."""
-        return iter(self.image_paths)
+        """Return self as an iterator."""
+        return self
+
+    def __next__(self) -> ImagePath:
+        """Return the next ImagePath."""
+        if self._index >= len(self.image_paths):
+            raise StopIteration
+        result = self.image_paths[self._index]
+        self._index += 1
+        return result
 
     def __getitem__(self, index: int) -> ImagePath:
         """Allow index access to ImagePath objects."""
@@ -50,22 +58,27 @@ class ImageLoader:
         return len(self.image_paths)
 
     def iter_image_paths(self) -> Iterable[ImagePath]:
-        return self.__iter__()
+        """Return a new iterator over image paths."""
+        return iter(self.image_paths)
 
     def iter_images(self) -> Iterable[PILImage.Image]:
         """Yield all loaded PIL Images."""
         return (img_path.load() for img_path in self.image_paths)
 
     def get_all_images(self) -> List[PILImage.Image]:
+        """Return all images eagerly."""
         return [image_path.load() for image_path in self.image_paths]
 
     def get_all_image_paths(self) -> List[str]:
+        """Return all file paths eagerly."""
         return [image_path.path for image_path in self.image_paths]
 
     def get_image(self, index: int) -> PILImage.Image:
+        """Return a loaded image by index."""
         if index < 0 or index >= len(self.image_paths):
             raise IndexError("Index out of range.")
         return self.image_paths[index].load()
 
     def get_image_path(self, index: int) -> ImagePath:
+        """Return an ImagePath by index."""
         return self.image_paths[index]

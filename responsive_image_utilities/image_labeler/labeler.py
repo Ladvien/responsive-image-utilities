@@ -1,4 +1,8 @@
+import threading
+import time
 import flet as ft
+from pynput import keyboard  # <--- changed here
+from pynput.keyboard import Key, KeyCode
 
 from responsive_image_utilities.image_labeler import LabelerConfig
 from responsive_image_utilities.image_labeler.controls.labeler_control import (
@@ -16,7 +20,6 @@ class LabelAppFactory:
         """
 
         def labeler_app(page: ft.Page):
-            # Setup
             page.title = config.title
             page.window_width = config.window_width
             page.window_height = config.window_height
@@ -26,31 +29,78 @@ class LabelAppFactory:
             page.window.focused = True
 
             silent_focus = ft.TextField(
-                visible=False,
                 disabled=False,
                 autofocus=True,
+                opacity=0.0,
             )
 
             label_manager = LabelManager(config.label_manager_config)
 
-            if label_manager.image_count() == 0:
+            if label_manager.num_unlabeled() == 0:
                 page.add(ft.Text("No images found."))
                 return
 
-            def on_key(event: ft.KeyboardEvent):
-                image_labeler.handle_keyboard_event(event)
-
             image_labeler = ImageLabelerControl(label_manager)
 
-            # Top level keyboard event handler
-            def on_keyboard(e: ft.KeyboardEvent):
-                image_labeler.handle_keyboard_event(e)
+            def on_keyboard(key: Key | KeyCode):
+                handled = image_labeler.handle_keyboard_event(key)
+                if handled:
+                    page.update()
 
-            page.on_keyboard_event = on_keyboard
+            # page.on_keyboard_event = on_keyboard
 
             page.add(
                 image_labeler,
                 silent_focus,
             )
+
+            page.update()
+            silent_focus.focus()
+
+            #############################
+            # Key Handling
+            #############################
+
+            pressed = False
+            key_pressed: Key | KeyCode | None = None
+
+            def on_press(key: Key | KeyCode):
+                nonlocal pressed, key_pressed
+                if page.window.focused:
+                    pressed = True
+                    key_pressed = key
+
+            def on_release():
+                nonlocal pressed, key_pressed
+                if page.window.focused:
+                    pressed = False
+                    key_pressed = None
+
+            # --- Background thread to update slider
+            def key_capture_loop():
+                repeat_delay = 0.05  # seconds between repeats
+                while True:
+                    moved = False
+                    if pressed:
+                        on_keyboard(key_pressed)
+
+                    if moved:
+                        page.update()
+
+                    time.sleep(repeat_delay)
+
+            # Start key listener
+            listener = keyboard.Listener(
+                on_press=on_press,
+                on_release=on_release,
+            )
+            listener.start()
+
+            # Key listener
+            threading.Thread(target=key_capture_loop, daemon=True).start()
+
+            #############################
+            # END: Key Handling
+            #############################
 
         return labeler_app

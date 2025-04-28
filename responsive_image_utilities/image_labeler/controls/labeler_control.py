@@ -1,5 +1,8 @@
 from typing import Callable
 import flet as ft
+from rich import print
+from pynput.keyboard import Key, KeyCode
+
 from responsive_image_utilities.image_labeler.controls.image_pair_view import (
     ImagePairViewer,
 )
@@ -40,48 +43,60 @@ class ImageLabelerControl(ft.Column):
         )
 
         self.keyboard_based_slider = KeyboardBasedSlider()
+        # self.slider = ft.Slider(min=0.0, max=1.0)
 
         self.controls = [
             ImagePairViewer(self.original, self.noisy),
             LabelingProgress(self.instructions, self.progress_text, self.progress_bar),
             self.keyboard_based_slider,
+            # self.slider,
         ]
+
+        self.pair_to_label = self.label_manager.get_unlabeled()
 
         self.expand = True
         self.update_content()
 
-    def before_update(self):
-        self.update_content()
-
     def update_content(self):
-        image_path, noisy_image_path = self.label_manager.get_unlabeled()
-        if image_path is None:
+        self.pair_to_label = self.label_manager.get_unlabeled()
+
+        if self.pair_to_label.original_image_path is None:
             print("No more images to label.")
             self.progress_text.value = "✅ All images labeled!"
             self.progress_bar.value = 1.0
             self.original.src_base64 = None
             self.noisy.src_base64 = None
         else:
-            self.original.src_base64 = image_path.load_as_base64()
-            self.noisy.src_base64 = noisy_image_path.load_as_base64()
-            self.progress_text.value = f"{self.label_manager.current_index()}/{self.label_manager.image_count()} labeled"
-            self.progress_bar.value = (
-                self.label_manager.current_index() / self.label_manager.image_count()
+            print(self.pair_to_label.original_image_path)
+            self.original.src_base64 = (
+                self.pair_to_label.original_image_path.load_as_base64()
             )
+            self.noisy.src_base64 = self.pair_to_label.noisy_image_path.load_as_base64()
+            # self.progress_text.value = f"{self.label_manager.c()}/{self.label_manager.image_count()} labeled"
+            # self.progress_bar.value = (
+            #     self.label_manager.current_index() / self.label_manager.image_count()
+            # )
 
-    def handle_keyboard_event(self, e: ft.KeyboardEvent):
-        """Dispatch keyboard events to child controls"""
+    def handle_keyboard_event(self, key: Key | KeyCode):
+        if isinstance(key, KeyCode):
+            return False
 
-        if self.keyboard_based_slider.handle_keyboard_event(e):
-            return  # slider handled it
+        if self.keyboard_based_slider.handle_keyboard_event(key):
+            return True
 
-        if e.key == "Arrow Right":
-            self.label_manager.next_image()
-            self.update_content()
-            return
-        if e.key == "Arrow Left":
-            self.label_manager.next_imagE()
-            self.update_content()
-            return
+        if key.name not in ["right", "left"]:
+            return False
 
-        self.keyboard_based_slider.handle_keyboard_event(e)
+        label = ""
+        if key.name == "right":
+            print("Arrow Right")
+            label = "acceptable"
+        if key.name == "left":
+            print("Arrow Left")
+            label = "unacceptable"
+
+        labeled_pair = self.pair_to_label.label(label)
+        self.label_manager.save_label(labeled_pair)
+        self.update_content()
+
+        return True

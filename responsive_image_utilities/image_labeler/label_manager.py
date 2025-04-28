@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import os
 import csv
 from random import uniform
+import warnings
 from rich import print
 from pathlib import Path
 
@@ -66,7 +67,7 @@ class LabelWriter:
 class LabelManager:
     def __init__(self, config: LabelManagerConfig):
         self.config = config
-        self.image_paths_iter = ImageLoader(self.config.images_dir).iter_image_paths()
+        self.image_loader = ImageLoader(self.config.images_dir)
         self.label_writer = LabelWriter(
             self.config.label_csv_path, self.config.overwrite_label_csv
         )
@@ -79,8 +80,8 @@ class LabelManager:
         self.label_writer.record_label(labeled_pair)
         self.labeled_image_paths.append(labeled_pair.original_image_path)
 
-    def get_unlabeled(self) -> tuple[UnlabeledImagePair, None] | None:
-        image_path = next(self.image_paths_iter)
+    def get_unlabeled(self) -> UnlabeledImagePair | None:
+        image_path = next(self.image_loader)
 
         if image_path is None:
             return None
@@ -99,3 +100,6 @@ class LabelManager:
         )
         noisy_image.save(noisy_image_path.path, quality=95)
         return UnlabeledImagePair(image_path, noisy_image_path)
+
+    def num_unlabeled(self) -> int:
+        return len(self.image_loader) - len(self.labeled_image_paths)

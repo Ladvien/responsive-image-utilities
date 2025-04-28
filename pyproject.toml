@@ -8,25 +8,22 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-# pillow = "^10.4.0"
+pillow = "^10.4.0"
 # piq = "^0.8.0"
-# torchvision = "^0.19.1"
+torchvision = "^0.19.1"
 
 # The following should probably be moved to dev dependencies
-# torch = "^2.4.0"
-# pytorch-lightning = "^2.4.0"
+torch = "^2.4.0"
+pytorch-lightning = "^2.4.0"
 # clip = { git ="https://github.com/openai/CLIP.git"}
 # open-clip-torch = "^2.26.1"
 pandas = "^2.2.3"
 pyarrow = "^17.0.0"
 rich = "^13.8.1"
 flet = "^0.27.6"
+pytest = "^8.3.5"
+pynput = "^1.8.1"
 
-[tool.poetry.group.dev.dependencies]
-# pytest = "^8.3.3"
-# black = "^24.8.0"
-# ruff = "^0.6.4"
-# ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]

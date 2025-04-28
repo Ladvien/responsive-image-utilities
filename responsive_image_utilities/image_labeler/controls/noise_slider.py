@@ -1,5 +1,9 @@
 from typing import Callable
 import flet as ft
+from pynput.keyboard import Key, KeyCode
+
+
+from flet import SliderInteraction
 
 
 class KeyboardBasedSlider(ft.Row):
@@ -16,93 +20,52 @@ class KeyboardBasedSlider(ft.Row):
         self.min_val = min_val
         self.max_val = max_val
         self.step = step
-        self._on_change_end_callback = on_change_end
+        self._on_change_end = on_change_end
 
-        self._slider = ft.Slider(
-            min=min_val,
-            max=max_val,
-            value=initial_value,
-            divisions=self._calculate_divisions(),
-            # on_focus=self._on_focus,
-            # on_blur=self._on_blur,
+        self.slider = ft.Slider(
+            min=self.min_val,
+            max=self.max_val,
+            value=self._clamp(initial_value),
+            divisions=None,
+            interaction=SliderInteraction.SLIDE_THUMB,  # <-- optional, reduces taps
+            on_change=lambda e: None,  # Ignore mouse drags
+            on_change_start=lambda e: None,
+            on_change_end=lambda e: None,
         )
 
-        self.controls = [
-            ft.Column(
-                [
-                    self._slider,
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=1,
-                tight=True,
-                expand=True,
-            )
-        ]
+        self.controls = [self.slider]
+        self.alignment = ft.MainAxisAlignment.CENTER
 
-        self._has_focus = False
-
-    def build(self):
-        return self
-
-    def _calculate_divisions(self):
-        total_range = self.max_val - self.min_val
-        if (
-            self.step
-            and self.step > 0
-            and abs((total_range / self.step) - round(total_range / self.step)) < 1e-9
-        ):
-            return int(round(total_range / self.step))
-        return None
+    def _clamp(self, value: float) -> float:
+        """Clamp value within min and max."""
+        return min(max(value, self.min_val), self.max_val)
 
     @property
     def value(self) -> float:
-        return float(self._slider.value or 0.0)
+        """Current value of the slider."""
+        return float(self.slider.value)
 
     @value.setter
     def value(self, new_value: float):
-        val = float(new_value)
-        val = min(max(val, self.min_val), self.max_val)
-        self._slider.value = val
-        try:
-            self._slider.update()
-        except Exception:
-            pass
+        self.slider.value = self._clamp(new_value)
+        self.slider.update()
 
-    def _increment_value(self):
-        new_val = min((self._slider.value or 0) + (self.step or 0), self.max_val)
-        if new_val != self._slider.value:
-            self._slider.value = new_val
-            self._slider.update()
-            self._fire_on_change_end()
+    def handle_keyboard_event(self, key: Key | KeyCode):
+        """Handle arrow key events. Returns True if handled."""
+        if isinstance(key, KeyCode):
+            return False
 
-    def _decrement_value(self):
-        new_val = max((self._slider.value or 0) - (self.step or 0), self.min_val)
-        if new_val != self._slider.value:
-            self._slider.value = new_val
-            self._slider.update()
-            self._fire_on_change_end()
-
-    def _fire_on_change_end(self):
-        if self._on_change_end_callback:
-            self._on_change_end_callback(self.value)
-
-    # def _on_focus(self, e: ft.OnFocusEvent):
-    #     self._has_focus = True
-
-    # def _on_blur(self, e: ft.OnFocusEvent):
-    #     self._has_focus = False
-
-    def handle_keyboard_event(self, e: ft.KeyboardEvent) -> bool:
-        """Handles keyboard event. Returns True if handled."""
-        # if not self._has_focus:
-        #     return False
-
-        if e.key == "Arrow Up":
-            self._increment_value()
+        print(key)
+        if key.name == "up":
+            self.value += self.step
+            if self._on_change_end:
+                self._on_change_end(self.value)
             return True
-        elif e.key == "Arrow Down":
-            self._decrement_value()
+
+        if key.name == "down":
+            self.value -= self.step
+            if self._on_change_end:
+                self._on_change_end(self.value)
             return True
 
         return False
