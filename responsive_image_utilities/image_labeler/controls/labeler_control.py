@@ -12,7 +12,7 @@ from responsive_image_utilities.image_labeler.controls.labeling_progress import 
     LabelingProgress,
 )
 from responsive_image_utilities.image_labeler.controls.noise_slider import (
-    KeyboardBasedSlider,
+    PersistentLabeledRangeSlider,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
 from responsive_image_utilities.image_labeler.label_manager import UnlabeledImagePair
@@ -34,7 +34,7 @@ class ImageLabelerControl(ft.Column):
         self.progress_text = ft.Text()
         self.progress_bar = ft.ProgressBar(width=300)
 
-        self.keyboard_based_slider = KeyboardBasedSlider()
+        self.keyboard_based_slider = PersistentLabeledRangeSlider()
 
         self.controls = [
             self.image_pair_viewer,
@@ -81,16 +81,15 @@ class ImageLabelerControl(ft.Column):
 
     def handle_keyboard_event(self, key: Key | KeyCode) -> bool:
         """Handle keyboard events: slider and labeling."""
-        if isinstance(key, KeyCode):
-            return False
 
-        if self.keyboard_based_slider.handle_keyboard_event(key):
-            return True
+        # NOTE: This method only wants key.
+        if not isinstance(key, Key):
+            return False
 
         # Handle image labeling with debounce
         if key.name in ("right", "left"):
             if not self._can_label():
-                return True  # Debounced: ignore too-fast presses
+                return True
 
             if key.name == "right":
                 self.__create_label("acceptable")

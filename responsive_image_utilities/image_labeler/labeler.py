@@ -29,9 +29,11 @@ class LabelAppFactory:
             page.window.focused = True
 
             silent_focus = ft.TextField(
-                disabled=False,
+                # disabled=True,
+                # read_only=True,
                 autofocus=True,
                 opacity=0.0,
+                show_cursor=False,
             )
 
             label_manager = LabelManager(config.label_manager_config)
@@ -43,13 +45,15 @@ class LabelAppFactory:
             image_labeler = ImageLabelerControl(label_manager)
 
             def on_keyboard(key: Key | KeyCode):
+                silent_focus.value = ""
+                silent_focus.focus()
                 handled = image_labeler.handle_keyboard_event(key)
                 if handled:
                     page.update()
 
             # NOTE: This page handler has holes.  Like no
             # event for holding the key press.
-            # page.on_keyboard_event = on_keyboard
+            page.on_keyboard_event = on_keyboard
 
             page.add(
                 image_labeler,
