@@ -5,7 +5,7 @@ import flet as ft
 class NoiseControl(ft.Column):
     def __init__(
         self,
-        initial_range: Tuple[float, float] = (0.0, 0.5),
+        initial_range: Tuple[float, float] = (0.8, 1.0),
         min_val: float = 0.0,
         max_val: float = 1.0,
         step: float = 0.001,
@@ -18,6 +18,7 @@ class NoiseControl(ft.Column):
         self.max_val = max_val
         self.step = step
         self.on_change_end = on_end_change
+        self.on_resample_click = on_resample_click
 
         # Labels for the current start and end values
         self.start_value_label = ft.Text(

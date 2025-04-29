@@ -11,7 +11,7 @@ from responsive_image_utilities.image_labeler.controls.instructions import Instr
 from responsive_image_utilities.image_labeler.controls.labeling_progress import (
     LabelingProgress,
 )
-from responsive_image_utilities.image_labeler.controls.noise_slider import (
+from responsive_image_utilities.image_labeler.controls.noise_control import (
     NoiseControl,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
