@@ -20,6 +20,7 @@ pytest = "^8.3.5"
 pynput = "^1.8.1"
 clip = "^0.2.0"
 timm = "^1.0.15"
+scikit-learn = "^1.6.1"
 
 [build-system]
 requires = ["poetry-core"]

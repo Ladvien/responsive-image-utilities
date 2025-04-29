@@ -76,7 +76,7 @@ class ImageLoader:
 
     def __setup(self, input_folder: str):
         """Reset the iterator to the beginning."""
-        raw_image_paths = list(Path(input_folder).rglob("*"))
+        raw_image_paths = list(Path(input_folder).rglob("*", case_sensitive=False))
 
         if not raw_image_paths:
             raise Exception(f"No files found in '{self.input_folder}'.")
