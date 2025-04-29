@@ -49,8 +49,8 @@ class LabelWriter:
             writer = csv.writer(f)
             writer.writerow(
                 [
-                    labeled_pair.original_image_path,
-                    labeled_pair.noisy_image_path,
+                    labeled_pair.original_image_path.path,
+                    labeled_pair.noisy_image_path.path,
                     labeled_pair.label,
                 ]
             )
@@ -119,9 +119,7 @@ class LabelManager:
         noisy_image_path = ImagePath(noisy_image_path)
         min_noise, max_noise = self.config.severity_range
         noise_level = uniform(min_noise, max_noise)
-        noisy_image = ImageNoiser.add_jpeg_compression(
-            new_image, noise_level, self.config.temporary_dir
-        )
+        noisy_image = ImageNoiser.add_jpeg_compression(new_image, noise_level)
         noisy_image.save(noisy_image_path.path, quality=100)
         return UnlabeledImagePair(image_path, noisy_image_path)
 

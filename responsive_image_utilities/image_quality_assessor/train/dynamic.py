@@ -12,18 +12,20 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-class ContinuousIQADataset(Dataset):
+class BinaryIQADataset(Dataset):
     def __init__(self, csv_file, transform=None, root_dir=None):
         self.df = pd.read_csv(csv_file)
         self.transform = transform
         self.root_dir = root_dir
+        self.label_map = {"unacceptable": 0, "acceptable": 1}
 
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        img_path = row["image_path"]
+        img_path = row["noisy_path"]
+
         if self.root_dir:
             img_path = Path(self.root_dir) / img_path
 
@@ -31,11 +33,11 @@ class ContinuousIQADataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        score = torch.tensor([float(row["score"])], dtype=torch.float32)
-        return {"image": image, "score": score}
+        label = torch.tensor([self.label_map[row["label"]]], dtype=torch.float32)
+        return {"image": image, "label": label}
 
 
-class CNNRegressor(nn.Module):
+class CNNBinaryClassifier(nn.Module):
     def __init__(self):
         super().__init__()
         base = create_model("mobilenetv2_100", pretrained=True, num_classes=1)
@@ -67,7 +69,7 @@ class IQAConfig:
         self.model_save_path = Path(self.model_save_folder) / self.model_save_name
 
 
-class ImageQualityAssessmentTrainer:
+class ImageQualityClassifierTrainer:
     def __init__(self, config: IQAConfig):
         self.config = config
 
@@ -81,7 +83,7 @@ class ImageQualityAssessmentTrainer:
             ]
         )
 
-        dataset = ContinuousIQADataset(config.csv_path, transform, config.root_dir)
+        dataset = BinaryIQADataset(config.csv_path, transform, config.root_dir)
         val_size = int(len(dataset) * config.val_split)
         train_size = len(dataset) - val_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
@@ -99,37 +101,37 @@ class ImageQualityAssessmentTrainer:
             num_workers=config.num_workers,
         )
 
-        self.model = CNNRegressor().to(config.device)
+        self.model = CNNBinaryClassifier().to(config.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate)
-        self.criterion = nn.MSELoss()
-        self.criterion2 = nn.L1Loss()
+        self.criterion = nn.BCEWithLogitsLoss()
 
     def train(self):
         best_loss = float("inf")
 
         for epoch in range(self.config.epochs):
             self.model.train()
-            train_losses = []
+            losses = []
 
             for batch in tqdm(
                 self.train_loader, desc=f"Epoch {epoch + 1}/{self.config.epochs}"
             ):
                 x = batch["image"].to(self.config.device)
-                y = batch["score"].to(self.config.device)
+                y = batch["label"].to(self.config.device)
 
                 self.optimizer.zero_grad()
-                y_hat = self.model(x)
-                loss = self.criterion(y_hat, y)
+                logits = self.model(x)
+                loss = self.criterion(logits, y)
                 loss.backward()
                 self.optimizer.step()
+                losses.append(loss.item())
 
-                train_losses.append(loss.item())
+            avg_train_loss = sum(losses) / len(losses)
+            print(f"[Epoch {epoch + 1}] Train BCE Loss: {avg_train_loss:.4f}")
 
-            avg_train_loss = sum(train_losses) / len(train_losses)
-            print(f"[Epoch {epoch + 1}] Train MSE Loss: {avg_train_loss:.4f}")
-
-            val_loss, val_mae = self.evaluate()
-            print(f"[Epoch {epoch + 1}] Val MSE: {val_loss:.4f} | MAE: {val_mae:.4f}")
+            val_loss, val_acc = self.evaluate()
+            print(
+                f"[Epoch {epoch + 1}] Val Loss: {val_loss:.4f} | Accuracy: {val_acc:.4f}"
+            )
 
             if val_loss < best_loss:
                 print(f"✅ New best model! Saving to {self.config.model_save_path}")
@@ -138,32 +140,24 @@ class ImageQualityAssessmentTrainer:
 
     def evaluate(self):
         self.model.eval()
-        losses, maes = [], []
+        losses = []
+        correct, total = 0, 0
 
         with torch.no_grad():
             for batch in self.val_loader:
                 x = batch["image"].to(self.config.device)
-                y = batch["score"].to(self.config.device)
+                y = batch["label"].to(self.config.device)
 
-                y_hat = self.model(x)
-                mse = self.criterion(y_hat, y)
-                mae = self.criterion2(y_hat, y)
+                logits = self.model(x)
+                loss = self.criterion(logits, y)
+                losses.append(loss.item())
 
-                losses.append(mse.item())
-                maes.append(mae.item())
+                preds = (torch.sigmoid(logits) > 0.5).float()
+                correct += (preds == y).sum().item()
+                total += y.size(0)
 
-        return sum(losses) / len(losses), sum(maes) / len(maes)
+        if len(losses) == 0:
+            print("⚠️ Warning: Validation set is empty or malformed.")
+            return None
 
-
-if __name__ == "__main__":
-    config = IQAConfig(
-        csv_path="labels/quality_labels.csv",
-        root_dir="images",
-        model_save_folder="models",
-        model_save_name="mobilenetv2_iqa.pth",
-        batch_size=32,
-        epochs=10,
-    )
-
-    trainer = ImageQualityAssessmentTrainer(config)
-    trainer.train()
+        return sum(losses) / len(losses), correct / total
