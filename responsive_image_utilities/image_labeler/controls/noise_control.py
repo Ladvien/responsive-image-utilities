@@ -11,6 +11,7 @@ class NoiseControl(ft.Column):
         step: float = 0.001,
         on_end_change: Callable = None,
         on_resample_click: Callable = None,
+        color_scheme: ft.ColorScheme | None = None,
     ):
         super().__init__()
 

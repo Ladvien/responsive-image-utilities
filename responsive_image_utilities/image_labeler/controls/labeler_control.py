@@ -20,7 +20,9 @@ from responsive_image_utilities.image_labeler.label_manager import UnlabeledImag
 
 class ImageLabelerControl(ft.Column):
     def __init__(
-        self, label_manager: LabelManager, color_scheme: ft.ColorScheme | None = None
+        self,
+        label_manager: LabelManager,
+        color_scheme: ft.ColorScheme | None = None,
     ):
         super().__init__()
 
@@ -28,7 +30,10 @@ class ImageLabelerControl(ft.Column):
         self.color_scheme = color_scheme or ft.ColorScheme()
 
         self.unlabeled_pair = self.label_manager.new_unlabeled()
-        self.image_pair_viewer = ImagePairViewer(self.unlabeled_pair)
+        self.image_pair_viewer = ImagePairViewer(
+            self.unlabeled_pair,
+            color_scheme,
+        )
 
         self.expand = True
         self.alignment = ft.MainAxisAlignment.START
@@ -38,10 +43,12 @@ class ImageLabelerControl(ft.Column):
         self.noise_control = NoiseControl(
             on_end_change=self.on_slider_update,
             on_resample_click=self.on_resample_click,
+            color_scheme=self.color_scheme,
         )
         self.progress_area = LabelingProgress(
             value=self.label_manager.percentage_complete(),
             progress_text=f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled",
+            color_scheme=self.color_scheme,
         )
 
         self.controls = [
