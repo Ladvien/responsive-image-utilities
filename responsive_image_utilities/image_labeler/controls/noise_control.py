@@ -114,7 +114,7 @@ class NoiseControl(ft.Column):
 
     def _on_resample_click(self, e: ft.ControlEvent):
         """Handle resample button click."""
-        if self.on_change_end:
-            self.on_change_end(
+        if self.on_resample_click:
+            self.on_resample_click(
                 e, self.range_slider.start_value, self.range_slider.end_value
             )

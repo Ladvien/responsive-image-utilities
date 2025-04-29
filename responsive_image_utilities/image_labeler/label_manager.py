@@ -103,7 +103,7 @@ class LabelManager:
 
         return self._unlabeled_pair(image_path)
 
-    def update_severity(self, unlabeled_pair: UnlabeledImagePair) -> UnlabeledImagePair:
+    def resample_images(self, unlabeled_pair: UnlabeledImagePair) -> UnlabeledImagePair:
         if unlabeled_pair.original_image_path in self.labeled_image_paths:
             raise Exception(f"This image pair is already labeled. {unlabeled_pair}")
 

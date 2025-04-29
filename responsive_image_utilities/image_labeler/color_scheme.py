@@ -8,18 +8,18 @@ class LabelerColorScheme:
     Defines a centralized color scheme for the Labeler App.
     """
 
-    # Primary app colors
-    PRIMARY = "#7F00FF"  # Vivid purple (buttons, highlights)
-    SECONDARY = "#C792EA"  # Soft lavender (accents)
-    BACKGROUND = "#1A002B"  # Very dark purple background
-    SURFACE = "#24003A"  # Lighter card surface
-    ERROR = "#FF5370"  # (Optional) Error color (soft red)
+    # Core colors
+    PRIMARY = "#D72638"  # Cherry red (primary action)
+    SECONDARY = "#00F0FF"  # Electric cyan (accents and sliders)
+    BACKGROUND = "#121212"  # Deep matte black (background)
+    SURFACE = "#1E1E1E"  # Card / surface background
+    ERROR = "#FF5370"  # Soft red (for errors, warnings)
 
-    # Text colors
-    ON_PRIMARY = "#FFFFFF"  # Text on primary (white)
-    ON_SECONDARY = "#FFFFFF"  # Text on secondary
-    ON_BACKGROUND = "#FFFFFF"  # Default page text
-    ON_SURFACE = "#CCCCCC"  # Card text
+    # Text and foreground
+    ON_PRIMARY = "#FFFFFF"  # Text on cherry red
+    ON_SECONDARY = "#000000"  # Text on electric cyan
+    ON_BACKGROUND = "#E0E0E0"  # General body text
+    ON_SURFACE = "#CCCCCC"  # Subdued card text
 
     @classmethod
     def flet_color_scheme(cls) -> ft.ColorScheme:

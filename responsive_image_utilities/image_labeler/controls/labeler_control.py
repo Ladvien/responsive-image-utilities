@@ -67,7 +67,9 @@ class ImageLabelerControl(ft.Column):
                             content=ft.Row(
                                 [
                                     ft.Container(
-                                        content=Instructions(),
+                                        content=Instructions(
+                                            color_scheme=self.color_scheme
+                                        ),
                                         padding=10,
                                         expand=True,
                                         alignment=ft.alignment.center_left,
@@ -134,18 +136,31 @@ class ImageLabelerControl(ft.Column):
     def handle_keyboard_event(self, key: Key | KeyCode) -> bool:
         if not isinstance(key, Key):
             return False
+
         if key.name in ("right", "left") and self.__can_label():
             self.__label_image("acceptable" if key.name == "right" else "unacceptable")
             return True
+
+        elif key.name == "space" and self.__can_label():
+            self.__resample_images()
+            return True
+
         return False
 
     def on_slider_update(
         self, event: ft.ControlEvent, start_value: float, end_value: float
     ):
         self.label_manager.set_severity_level(start_value, end_value)
-        self.unlabeled_pair = self.label_manager.update_severity(self.unlabeled_pair)
-        self.image_pair_viewer.update_images(self.unlabeled_pair)
+        self.__resample_images()
 
-    def on_resample_click(self, event: ft.ControlEvent):
+    def on_resample_click(
+        self,
+        event: ft.ControlEvent,
+        start_value: float,
+        end_value: float,
+    ):
+        self.__resample_images()
+
+    def __resample_images(self) -> None:
         self.label_manager.resample_images(self.unlabeled_pair)
         self.image_pair_viewer.update_images(self.unlabeled_pair)

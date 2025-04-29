@@ -47,7 +47,7 @@ class ImagePairViewer(ft.Container):
         # Styling from theme
         self.bgcolor = self.color_scheme.surface
         self.border_radius = 16
-        self.padding = ft.Padding(20, 20, 20, 20)
+        self.padding = ft.padding.all(20)
         self.shadow = ft.BoxShadow(
             spread_radius=1,
             blur_radius=8,
