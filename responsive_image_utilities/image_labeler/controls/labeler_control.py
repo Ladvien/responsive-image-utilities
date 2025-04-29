@@ -12,17 +12,21 @@ from responsive_image_utilities.image_labeler.controls.labeling_progress import 
     LabelingProgress,
 )
 from responsive_image_utilities.image_labeler.controls.noise_slider import (
-    PersistentLabeledRangeSlider,
+    NoiseControl,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
 from responsive_image_utilities.image_labeler.label_manager import UnlabeledImagePair
 
 
 class ImageLabelerControl(ft.Column):
-    def __init__(self, label_manager: LabelManager):
+    def __init__(
+        self, label_manager: LabelManager, color_scheme: ft.ColorScheme | None = None
+    ):
         super().__init__()
 
         self.label_manager = label_manager
+        self.color_scheme = color_scheme or ft.ColorScheme()
+
         self.unlabeled_pair = self.label_manager.new_unlabeled()
         self.image_pair_viewer = ImagePairViewer(self.unlabeled_pair)
 
@@ -31,21 +35,19 @@ class ImageLabelerControl(ft.Column):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.spacing = 0
 
-        def on_slider_update(
-            event: ft.ControlEvent, start_value: float, end_value: float
-        ):
-            self.label_manager.set_severity_level(start_value, end_value)
-            self.unlabeled_pair = self.label_manager.update_severity(
-                self.unlabeled_pair
-            )
-            self.image_pair_viewer.update_images(self.unlabeled_pair)
-
-        self.noise_slider = PersistentLabeledRangeSlider(on_end_change=on_slider_update)
+        self.noise_control = NoiseControl(
+            on_end_change=self.on_slider_update,
+            on_resample_click=self.on_resample_click,
+        )
+        self.progress_area = LabelingProgress(
+            value=self.label_manager.percentage_complete(),
+            progress_text=f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled",
+        )
 
         self.controls = [
             ft.Container(
                 content=self.image_pair_viewer,
-                bgcolor="#1E1E2F",
+                bgcolor=self.color_scheme.primary,
                 padding=20,
                 border_radius=12,
                 expand=3,  # Top: 3/4 screen
@@ -64,9 +66,17 @@ class ImageLabelerControl(ft.Column):
                                         alignment=ft.alignment.center_left,
                                     ),
                                     ft.Container(
-                                        content=self.noise_slider,
+                                        content=self.noise_control,
                                         padding=10,
-                                        bgcolor="#1A1A2E",
+                                        bgcolor=self.color_scheme.primary,
+                                        border_radius=10,
+                                        expand=True,
+                                        alignment=ft.alignment.center_right,
+                                    ),
+                                    ft.Container(
+                                        content=self.progress_area,
+                                        padding=10,
+                                        bgcolor=self.color_scheme.primary,
                                         border_radius=10,
                                         expand=True,
                                         alignment=ft.alignment.center_right,
@@ -76,33 +86,6 @@ class ImageLabelerControl(ft.Column):
                                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
                             ),
                             expand=3,  # 3/4 width
-                        ),
-                        # 1/4 of width: Progress Bar
-                        ft.Container(
-                            content=ft.Column(
-                                [
-                                    ft.Text(
-                                        f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled",
-                                        size=14,
-                                        weight=ft.FontWeight.BOLD,
-                                        color=ft.colors.WHITE,
-                                        text_align=ft.TextAlign.RIGHT,
-                                    ),
-                                    ft.ProgressBar(
-                                        value=self.label_manager.percentage_complete(),
-                                        bgcolor="#555",
-                                        color="#C792EA",
-                                        height=12,
-                                        expand=True,
-                                    ),
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            ),
-                            expand=1,  # 1/4 width
-                            padding=10,
-                            bgcolor="#2A2A40",
-                            border_radius=10,
                         ),
                     ],
                     expand=True,
@@ -124,6 +107,10 @@ class ImageLabelerControl(ft.Column):
     def update_content(self) -> None:
         self.unlabeled_pair = self.label_manager.new_unlabeled()
         self.image_pair_viewer.update_images(self.unlabeled_pair)
+        self.progress_area.update_progress(
+            value=self.label_manager.percentage_complete(),
+            progress_text=f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled",
+        )
 
     def __label_image(self, label: str) -> None:
         labeled_pair = self.unlabeled_pair.label(label)
@@ -144,3 +131,14 @@ class ImageLabelerControl(ft.Column):
             self.__label_image("acceptable" if key.name == "right" else "unacceptable")
             return True
         return False
+
+    def on_slider_update(
+        self, event: ft.ControlEvent, start_value: float, end_value: float
+    ):
+        self.label_manager.set_severity_level(start_value, end_value)
+        self.unlabeled_pair = self.label_manager.update_severity(self.unlabeled_pair)
+        self.image_pair_viewer.update_images(self.unlabeled_pair)
+
+    def on_resample_click(self, event: ft.ControlEvent):
+        self.label_manager.resample_images(self.unlabeled_pair)
+        self.image_pair_viewer.update_images(self.unlabeled_pair)

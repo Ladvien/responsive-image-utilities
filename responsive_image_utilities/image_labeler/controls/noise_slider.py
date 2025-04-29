@@ -2,7 +2,7 @@ from typing import Callable, Tuple
 import flet as ft
 
 
-class PersistentLabeledRangeSlider(ft.Column):
+class NoiseControl(ft.Column):
     def __init__(
         self,
         initial_range: Tuple[float, float] = (0.0, 0.5),
@@ -10,6 +10,7 @@ class PersistentLabeledRangeSlider(ft.Column):
         max_val: float = 1.0,
         step: float = 0.001,
         on_end_change: Callable = None,
+        on_resample_click: Callable = None,
     ):
         super().__init__()
 
@@ -52,9 +53,25 @@ class PersistentLabeledRangeSlider(ft.Column):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
 
+        self.refresh_button = ft.ElevatedButton(
+            "Resample",
+            icon=ft.icons.REFRESH,
+            style=ft.ButtonStyle(
+                bgcolor=ft.colors.with_opacity(0.1, ft.colors.ON_SURFACE),
+                padding=ft.padding.symmetric(horizontal=20, vertical=10),
+                shape=ft.RoundedRectangleBorder(radius=6),
+            ),
+            on_click=self._on_resample_click,
+        )
+
         self.controls = [
             self.labels_row,
             self.range_slider,
+            ft.Container(
+                content=self.refresh_button,
+                alignment=ft.alignment.center,
+                padding=ft.padding.only(top=8),
+            ),
         ]
 
         self.spacing = 5
@@ -89,6 +106,13 @@ class PersistentLabeledRangeSlider(ft.Column):
     def _on_end_change(self, e: ft.ControlEvent):
         """Handle end of slider change."""
         if self.range_slider.on_change_end:
+            self.on_change_end(
+                e, self.range_slider.start_value, self.range_slider.end_value
+            )
+
+    def _on_resample_click(self, e: ft.ControlEvent):
+        """Handle resample button click."""
+        if self.on_change_end:
             self.on_change_end(
                 e, self.range_slider.start_value, self.range_slider.end_value
             )

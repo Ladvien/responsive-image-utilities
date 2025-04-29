@@ -122,7 +122,7 @@ class LabelManager:
         noisy_image = ImageNoiser.add_jpeg_compression(
             new_image, noise_level, self.config.temporary_dir
         )
-        noisy_image.save(noisy_image_path.path, quality=95)
+        noisy_image.save(noisy_image_path.path, quality=100)
         return UnlabeledImagePair(image_path, noisy_image_path)
 
     def unlabeled_count(self) -> int:

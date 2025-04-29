@@ -9,6 +9,7 @@ from responsive_image_utilities.image_labeler.controls.labeler_control import (
     ImageLabelerControl,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
+from responsive_image_utilities.image_labeler.color_scheme import LabelerColorScheme
 
 
 class LabelAppFactory:
@@ -28,16 +29,10 @@ class LabelAppFactory:
             page.window.always_on_top = True
             page.window.focused = True
 
-            page.bgcolor = "#1A002B"  # Dark purple background
+            color_scheme = LabelerColorScheme.flet_color_scheme()
+            page.bgcolor = LabelerColorScheme.BACKGROUND
             page.theme = ft.Theme(
-                color_scheme=ft.ColorScheme(
-                    primary="#7F00FF",
-                    secondary="#C792EA",
-                    background="#1A002B",
-                    surface="#24003A",
-                    on_surface="#FFFFFF",
-                    on_background="#FFFFFF",
-                ),
+                color_scheme=color_scheme,
             )
             page.theme_mode = ft.ThemeMode.DARK
 
