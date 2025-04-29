@@ -14,28 +14,7 @@ class ImageLoader:
         else:
             self.extensions = [".jpg", ".jpeg", ".png"]
 
-        raw_image_paths = list(Path(input_folder).rglob("*"))
-
-        if not raw_image_paths:
-            raise Exception(f"No files found in '{self.input_folder}'.")
-
-        filtered_image_paths = [
-            path for path in raw_image_paths if path.suffix.lower() in self.extensions
-        ]
-
-        if not filtered_image_paths:
-            raise Exception(
-                f"No files found in '{self.input_folder}' with extensions {self.extensions}."
-            )
-
-        filtered_image_paths.sort()
-
-        potential_image_paths = [ImagePath(path) for path in filtered_image_paths]
-        self.image_paths = [
-            path for path in potential_image_paths if path.is_valid_image()
-        ]
-
-        self._index = 0  # <-- Track our position for iteration!
+        self.__setup(input_folder)
 
     def __iter__(self):
         """Return self as an iterator."""
@@ -86,3 +65,32 @@ class ImageLoader:
     def total(self) -> int:
         """Return the total number of images."""
         return len(self.image_paths)
+
+    def reset(self):
+        """Reset the iterator to the beginning."""
+        self.__setup(self.input_folder)
+
+    def __setup(self, input_folder: str):
+        """Reset the iterator to the beginning."""
+        raw_image_paths = list(Path(input_folder).rglob("*"))
+
+        if not raw_image_paths:
+            raise Exception(f"No files found in '{self.input_folder}'.")
+
+        filtered_image_paths = [
+            path for path in raw_image_paths if path.suffix.lower() in self.extensions
+        ]
+
+        if not filtered_image_paths:
+            raise Exception(
+                f"No files found in '{self.input_folder}' with extensions {self.extensions}."
+            )
+
+        filtered_image_paths.sort()
+
+        potential_image_paths = [ImagePath(path) for path in filtered_image_paths]
+
+        self.image_paths = [
+            path for path in potential_image_paths if path.is_valid_image()
+        ]
+        self._index = 0  # <-- Track our position for iteration!

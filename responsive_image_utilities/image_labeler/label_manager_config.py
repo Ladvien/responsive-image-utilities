@@ -17,6 +17,8 @@ class LabelManagerConfig:
     noise_functions: Optional[List[str]] = None
     severity_range: Tuple[float, float] = (0.2, 0.95)
 
+    image_samples: int | None = None
+
     def __post_init__(self):
         if self.label_csv_path is None:
             self.label_csv_path = os.path.join(self.output_dir, "labels.csv")

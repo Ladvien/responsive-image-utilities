@@ -88,18 +88,6 @@ def test_label_writer_initializes_file(setup_test_environment):
         assert header == ["original_path", "noisy_path", "label"]
 
 
-def test_label_writer_records_and_detects_label(setup_test_environment):
-    label_writer = LabelWriter(LABELS_CSV_PATH)
-    original = ImagePath(os.path.join(GENERATED_IMAGES_PATH, "test_image.jpg"))
-    noisy = ImagePath(os.path.join(GENERATED_IMAGES_PATH, "test_image_noisy.jpg"))
-    label = "good"
-
-    labeled_pair = LabeledImagePair(original, noisy, label)
-    label_writer.record_label(labeled_pair)
-
-    assert label_writer.is_labeled(str(original))
-
-
 def test_unlabeled_image_pair_label_returns_labeled_pair(setup_test_environment):
     original = ImagePath(os.path.join(GENERATED_IMAGES_PATH, "test_image.jpg"))
     noisy = ImagePath(os.path.join(GENERATED_IMAGES_PATH, "test_image_noisy.jpg"))

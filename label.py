@@ -17,6 +17,8 @@ SOURCE_IMAGES_PATH = "/Users/ladvien/ladvien.com/content/images"
 TRAIN_IMAGES_OUTPUT_PATH = "training_data/aiqa"
 TEMPORARY_IMAGES_OUTPUT_PATH = f"{TRAIN_IMAGES_OUTPUT_PATH}/temporary"
 
+NUM_IMAGE_SAMPLES = 5000
+
 os.makedirs(TRAIN_IMAGES_OUTPUT_PATH, exist_ok=True)
 
 # Create noisy images
@@ -48,6 +50,7 @@ config = LabelerConfig(
         images_dir=SOURCE_IMAGES_PATH,
         output_dir=TRAIN_IMAGES_OUTPUT_PATH,
         temporary_dir=TEMPORARY_IMAGES_OUTPUT_PATH,
+        image_samples=NUM_IMAGE_SAMPLES,
     ),
 )
 

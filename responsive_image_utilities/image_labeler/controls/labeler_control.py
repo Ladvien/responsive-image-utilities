@@ -162,5 +162,5 @@ class ImageLabelerControl(ft.Column):
         self.__resample_images()
 
     def __resample_images(self) -> None:
-        self.label_manager.resample_images(self.unlabeled_pair)
+        self.unlabeled_pair = self.label_manager.resample_images(self.unlabeled_pair)
         self.image_pair_viewer.update_images(self.unlabeled_pair)
