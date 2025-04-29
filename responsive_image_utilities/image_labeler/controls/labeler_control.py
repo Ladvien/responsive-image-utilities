@@ -26,10 +26,14 @@ class ImageLabelerControl(ft.Column):
         self.unlabeled_pair = self.label_manager.new_unlabeled()
         self.image_pair_viewer = ImagePairViewer(self.unlabeled_pair)
 
+        self.expand = True
+        self.alignment = ft.MainAxisAlignment.START
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.spacing = 0
+
         def on_slider_update(
             event: ft.ControlEvent, start_value: float, end_value: float
         ):
-            """Update the noise slider value."""
             self.label_manager.set_severity_level(start_value, end_value)
             self.unlabeled_pair = self.label_manager.update_severity(
                 self.unlabeled_pair
@@ -39,28 +43,85 @@ class ImageLabelerControl(ft.Column):
         self.noise_slider = PersistentLabeledRangeSlider(on_end_change=on_slider_update)
 
         self.controls = [
-            self.image_pair_viewer,
-            self.noise_slider,
-            LabelingProgress(
-                self.label_manager.percentage_complete(),
-                Instructions(),
-                ft.Text(
-                    f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled"
+            ft.Container(
+                content=self.image_pair_viewer,
+                bgcolor="#1E1E2F",
+                padding=20,
+                border_radius=12,
+                expand=3,  # Top: 3/4 screen
+            ),
+            ft.Container(
+                content=ft.Row(
+                    [
+                        # 3/4 of width: Instructions + Slider
+                        ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.Container(
+                                        content=Instructions(),
+                                        padding=10,
+                                        expand=True,
+                                        alignment=ft.alignment.center_left,
+                                    ),
+                                    ft.Container(
+                                        content=self.noise_slider,
+                                        padding=10,
+                                        bgcolor="#1A1A2E",
+                                        border_radius=10,
+                                        expand=True,
+                                        alignment=ft.alignment.center_right,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                            ),
+                            expand=3,  # 3/4 width
+                        ),
+                        # 1/4 of width: Progress Bar
+                        ft.Container(
+                            content=ft.Column(
+                                [
+                                    ft.Text(
+                                        f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled",
+                                        size=14,
+                                        weight=ft.FontWeight.BOLD,
+                                        color=ft.colors.WHITE,
+                                        text_align=ft.TextAlign.RIGHT,
+                                    ),
+                                    ft.ProgressBar(
+                                        value=self.label_manager.percentage_complete(),
+                                        bgcolor="#555",
+                                        color="#C792EA",
+                                        height=12,
+                                        expand=True,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            ),
+                            expand=1,  # 1/4 width
+                            padding=10,
+                            bgcolor="#2A2A40",
+                            border_radius=10,
+                        ),
+                    ],
+                    expand=True,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
+                padding=20,
+                expand=1,  # Bottom: 1/4 screen
             ),
         ]
 
-        self.expand = True
-
         # --- Debounce Timer
-        self._last_label_time = 0.0  # seconds since epoch
-        self._debounce_interval = 0.5  # 0.5 seconds
+        self._last_label_time = 0.0
+        self._debounce_interval = 0.5
 
     def on_mount(self):
         self.update_content()
 
     def update_content(self) -> None:
-        """Update displayed images and progress."""
         self.unlabeled_pair = self.label_manager.new_unlabeled()
         self.image_pair_viewer.update_images(self.unlabeled_pair)
 
@@ -77,22 +138,9 @@ class ImageLabelerControl(ft.Column):
         return False
 
     def handle_keyboard_event(self, key: Key | KeyCode) -> bool:
-        """Handle keyboard events: slider and labeling."""
-
-        # NOTE: This method only wants key.
         if not isinstance(key, Key):
             return False
-
-        # Handle image labeling with debounce
-        if key.name in ("right", "left"):
-            if not self.__can_label():
-                return True
-
-            if key.name == "right":
-                self.__label_image("acceptable")
-            elif key.name == "left":
-                self.__label_image("unacceptable")
-
+        if key.name in ("right", "left") and self.__can_label():
+            self.__label_image("acceptable" if key.name == "right" else "unacceptable")
             return True
-
         return False

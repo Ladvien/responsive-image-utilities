@@ -18,24 +18,28 @@ class ImageWithLabel(ft.Column):
         self.controls = [
             ft.Text(
                 label_text,
-                size=20,
-                color=ft.colors.BLUE_900,
+                size=22,
+                weight=ft.FontWeight.BOLD,
+                color="#FFFFFF",  # bright white for titles
                 text_align=ft.TextAlign.CENTER,
             ),
             self.image,
             ft.Text(
                 image_path.name,
-                size=12,
-                color=ft.colors.BLUE_900,
+                size=14,
+                color="#CCCCCC",  # soft gray for secondary info
                 text_align=ft.TextAlign.CENTER,
             ),
         ]
+
         self.alignment = ft.MainAxisAlignment.CENTER
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.expand = True
         self.animate_size = ft.Animation(
             duration=100, curve=ft.AnimationCurve.EASE_IN_OUT
         )
+        self.image.border_radius = 10
+        self.image.border = ft.border.all(2, "#7F00FF")  # purple border
 
         # Now load the initial pair
         self.update_images(image_path)

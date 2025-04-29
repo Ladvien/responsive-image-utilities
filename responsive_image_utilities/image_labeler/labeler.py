@@ -28,6 +28,19 @@ class LabelAppFactory:
             page.window.always_on_top = True
             page.window.focused = True
 
+            page.bgcolor = "#1A002B"  # Dark purple background
+            page.theme = ft.Theme(
+                color_scheme=ft.ColorScheme(
+                    primary="#7F00FF",
+                    secondary="#C792EA",
+                    background="#1A002B",
+                    surface="#24003A",
+                    on_surface="#FFFFFF",
+                    on_background="#FFFFFF",
+                ),
+            )
+            page.theme_mode = ft.ThemeMode.DARK
+
             silent_focus = ft.TextField(
                 # disabled=True,
                 # read_only=True,

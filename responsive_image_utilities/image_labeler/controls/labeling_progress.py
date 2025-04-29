@@ -21,12 +21,14 @@ class LabelingProgress(ft.Container):
                     value=value,
                     width=300,
                     height=20,
-                    bgcolor=ft.colors.BLUE_100,
-                    color=ft.colors.BLUE_500,
+                    bgcolor="#3A003F",  # muted dark
+                    color="#C792EA",  # light purple
+                    border_radius=10,
                 ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
+
         self.expand = 1  # Bottom 1/4
         self.padding = 20

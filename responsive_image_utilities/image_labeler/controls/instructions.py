@@ -5,13 +5,11 @@ class Instructions(ft.Column):
     def __init__(self):
         super().__init__()
 
-        self.instructions_label = ft.Text("Keyboard Shortcuts:", size=20)
-        self.left_arrow_label = ft.Text(
-            "<- Left Arrow: Unacceptable", color=ft.colors.RED
+        self.instructions_label = ft.Text(
+            "Keyboard Shortcuts:", size=20, color="#C792EA"
         )
-        self.right_arrow_label = ft.Text(
-            "-> Right Arrow: Acceptable", color=ft.colors.GREEN
-        )
+        self.left_arrow_label = ft.Text("<- Left Arrow: Unacceptable", color="#C792EA")
+        self.right_arrow_label = ft.Text("-> Right Arrow: Acceptable", color="#C792EA")
 
         self.controls = [
             ft.Column(
