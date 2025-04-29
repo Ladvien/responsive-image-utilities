@@ -8,9 +8,9 @@ from responsive_image_utilities.image_labeler.controls.image_with_label import (
 class ImagePairViewer(ft.Container):
     def __init__(self, pair: UnlabeledImagePair):
         super().__init__()
-
         self.original = ImageWithLabel("Original Image", pair.original_image_path)
         self.noisy = ImageWithLabel("Noisy Image", pair.noisy_image_path)
+
         self.content = ft.Row(
             [
                 self.original,
@@ -29,3 +29,4 @@ class ImagePairViewer(ft.Container):
     def update_images(self, pair: UnlabeledImagePair):
         self.original.update_images(pair.original_image_path)
         self.noisy.update_images(pair.noisy_image_path)
+        self.update()

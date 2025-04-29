@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Callable, Tuple
 import flet as ft
 
 
@@ -9,19 +9,21 @@ class PersistentLabeledRangeSlider(ft.Column):
         min_val: float = 0.0,
         max_val: float = 1.0,
         step: float = 0.001,
+        on_end_change: Callable = None,
     ):
         super().__init__()
 
         self.min_val = min_val
         self.max_val = max_val
         self.step = step
+        self.on_change_end = on_end_change
 
         # Labels for the current start and end values
         self.start_value_label = ft.Text(
-            f"{initial_range[0]:.2f}", text_align=ft.TextAlign.CENTER
+            f"{initial_range[0] * 100}%", text_align=ft.TextAlign.CENTER
         )
         self.end_value_label = ft.Text(
-            f"{initial_range[1]:.2f}", text_align=ft.TextAlign.CENTER
+            f"{initial_range[1] * 100}%", text_align=ft.TextAlign.CENTER
         )
 
         self.range_slider = ft.RangeSlider(
@@ -29,12 +31,14 @@ class PersistentLabeledRangeSlider(ft.Column):
             max=self.max_val,
             start_value=self._clamp(initial_range[0]),
             end_value=self._clamp(initial_range[1]),
-            divisions=(
-                int((self.max_val - self.min_val) / self.step) if self.step else None
-            ),
-            label="{value}",
+            # TODO: Disables knobs
+            # divisions=(
+            #     int((self.max_val - self.min_val) / self.step) if self.step else None
+            # ),
+            # label="{value}",
             round=3,
             on_change=self._on_slider_change,
+            on_change_end=self._on_end_change,
             expand=True,
         )
 
@@ -62,8 +66,10 @@ class PersistentLabeledRangeSlider(ft.Column):
 
     def _on_slider_change(self, e: ft.ControlEvent):
         """Update labels when slider values change."""
-        self.start_value_label.value = f"{self.range_slider.start_value:.2f}"
-        self.end_value_label.value = f"{self.range_slider.end_value:.2f}"
+        self.start_value_label.value = (
+            f"{round(self.range_slider.start_value * 100, 2)}%"
+        )
+        self.end_value_label.value = f"{round(self.range_slider.end_value * 100, 2)}%"
         self.labels_row.update()
 
     @property
@@ -79,3 +85,10 @@ class PersistentLabeledRangeSlider(ft.Column):
         self.range_slider.end_value = self._clamp(upper)
         self.range_slider.update()
         self._on_slider_change(None)  # Update labels immediately
+
+    def _on_end_change(self, e: ft.ControlEvent):
+        """Handle end of slider change."""
+        if self.range_slider.on_change_end:
+            self.on_change_end(
+                e, self.range_slider.start_value, self.range_slider.end_value
+            )

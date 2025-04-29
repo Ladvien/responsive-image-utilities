@@ -23,23 +23,31 @@ class ImageLabelerControl(ft.Column):
         super().__init__()
 
         self.label_manager = label_manager
+        self.unlabeled_pair = self.label_manager.new_unlabeled()
+        self.image_pair_viewer = ImagePairViewer(self.unlabeled_pair)
 
-        # Get initial image pair
-        self.pair_to_label: UnlabeledImagePair = self.label_manager.get_unlabeled()
+        def on_slider_update(
+            event: ft.ControlEvent, start_value: float, end_value: float
+        ):
+            """Update the noise slider value."""
+            self.label_manager.set_severity_level(start_value, end_value)
+            self.unlabeled_pair = self.label_manager.update_severity(
+                self.unlabeled_pair
+            )
+            self.image_pair_viewer.update_images(self.unlabeled_pair)
 
-        # Controls
-        self.image_pair_viewer = ImagePairViewer(self.pair_to_label)
-
-        self.instructions = Instructions()
-        self.progress_text = ft.Text()
-        self.progress_bar = ft.ProgressBar(width=300)
-
-        self.keyboard_based_slider = PersistentLabeledRangeSlider()
+        self.noise_slider = PersistentLabeledRangeSlider(on_end_change=on_slider_update)
 
         self.controls = [
             self.image_pair_viewer,
-            LabelingProgress(self.instructions, self.progress_text, self.progress_bar),
-            self.keyboard_based_slider,
+            self.noise_slider,
+            LabelingProgress(
+                self.label_manager.percentage_complete(),
+                Instructions(),
+                ft.Text(
+                    f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled"
+                ),
+            ),
         ]
 
         self.expand = True
@@ -48,31 +56,20 @@ class ImageLabelerControl(ft.Column):
         self._last_label_time = 0.0  # seconds since epoch
         self._debounce_interval = 0.5  # 0.5 seconds
 
+    def on_mount(self):
         self.update_content()
 
-    def update_content(self):
+    def update_content(self) -> None:
         """Update displayed images and progress."""
-        self.pair_to_label = self.label_manager.get_unlabeled()
+        self.unlabeled_pair = self.label_manager.new_unlabeled()
+        self.image_pair_viewer.update_images(self.unlabeled_pair)
 
-        if self.pair_to_label.original_image_path is None:
-            print("No more images to label.")
-            self.progress_text.value = "✅ All images labeled!"
-            self.progress_bar.value = 1.0
-            self.image_pair_viewer.original_image.src_base64 = None
-            self.image_pair_viewer.noisy_image.src_base64 = None
-        else:
-            self.image_pair_viewer.update_images(self.pair_to_label)
-            self.progress_text.value = f"{self.label_manager.labeled_count()}/{self.label_manager.total()} labeled"
-            self.progress_bar.value = self.label_manager.percentage_complete()
-
-    def __create_label(self, label: str):
-        """Create and save a label for current image pair."""
-        labeled_pair = self.pair_to_label.label(label)
+    def __label_image(self, label: str) -> None:
+        labeled_pair = self.unlabeled_pair.label(label)
         self.label_manager.save_label(labeled_pair)
         self.update_content()
 
-    def _can_label(self) -> bool:
-        """Debounce: check if enough time has passed since last label."""
+    def __can_label(self) -> bool:
         now = time.time()
         if now - self._last_label_time >= self._debounce_interval:
             self._last_label_time = now
@@ -88,13 +85,13 @@ class ImageLabelerControl(ft.Column):
 
         # Handle image labeling with debounce
         if key.name in ("right", "left"):
-            if not self._can_label():
+            if not self.__can_label():
                 return True
 
             if key.name == "right":
-                self.__create_label("acceptable")
+                self.__label_image("acceptable")
             elif key.name == "left":
-                self.__create_label("unacceptable")
+                self.__label_image("unacceptable")
 
             return True
 

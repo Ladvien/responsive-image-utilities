@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import os
 import csv
 from random import uniform
+from typing import Any
 import warnings
 from rich import print
 from pathlib import Path
@@ -79,6 +80,14 @@ class LabelManager:
         )
         self.labeled_image_paths = self.label_writer.get_labels()
 
+    def set_severity_level(self, severity_min: float, severity_max: float) -> None:
+        if severity_min < 0 or severity_max < 0:
+            raise ValueError("Severity levels must be non-negative.")
+        if severity_min > severity_max:
+            raise ValueError("Minimum severity level cannot be greater than maximum.")
+
+        self.config.severity_range = (severity_min, severity_max)
+
     def save_label(self, labeled_pair: LabeledImagePair) -> None:
         if labeled_pair.original_image_path in self.labeled_image_paths:
             raise Exception(f"This image pair is already labeled. {labeled_pair}")
@@ -86,12 +95,21 @@ class LabelManager:
         self.label_writer.record_label(labeled_pair)
         self.labeled_image_paths.append(labeled_pair.original_image_path)
 
-    def get_unlabeled(self) -> UnlabeledImagePair | None:
+    def new_unlabeled(self) -> UnlabeledImagePair | None:
         image_path = next(self.image_loader)
 
         if image_path is None:
             return None
 
+        return self._unlabeled_pair(image_path)
+
+    def update_severity(self, unlabeled_pair: UnlabeledImagePair) -> UnlabeledImagePair:
+        if unlabeled_pair.original_image_path in self.labeled_image_paths:
+            raise Exception(f"This image pair is already labeled. {unlabeled_pair}")
+
+        return self._unlabeled_pair(unlabeled_pair.original_image_path)
+
+    def _unlabeled_pair(self, image_path: ImagePath) -> UnlabeledImagePair:
         new_image = image_path.load()
         noisy_image_path = os.path.join(
             self.config.output_dir,

@@ -162,5 +162,5 @@ def test_label_manager_get_unlabeled_returns_pair_or_none(
 ):
     label_manager = LabelManager(labeler_manager_config)
 
-    result = label_manager.get_unlabeled()
+    result = label_manager.new_unlabeled()
     assert result is None or isinstance(result, UnlabeledImagePair)
