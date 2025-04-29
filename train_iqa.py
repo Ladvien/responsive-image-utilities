@@ -8,7 +8,7 @@ if __name__ == "__main__":
     config = IQAConfig(
         csv_path="training_data/aiqa/labels.csv",
         model_save_folder="models",
-        model_save_name="mobilenetv2_binary_iqa.pth",
+        model_save_name="siamese_resnet_binary_iqa.pth",
         batch_size=32,
         epochs=500,
         early_stopping_patience=50,
