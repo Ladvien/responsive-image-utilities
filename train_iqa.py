@@ -10,7 +10,7 @@ if __name__ == "__main__":
         model_save_folder="models",
         model_save_name="mobilenetv2_binary_iqa.pth",
         batch_size=32,
-        epochs=10,
+        epochs=500,
     )
 
     trainer = ImageQualityClassifierTrainer(config)
