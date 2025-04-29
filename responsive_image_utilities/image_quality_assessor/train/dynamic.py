@@ -63,7 +63,7 @@ class IQAConfig:
     test_split: float = 0.1
     learning_rate: float = 1e-4
     img_size: int = 224
-    early_stopping_patience: int = 5
+    early_stopping_patience: int = 15
     device: str | None = None
 
     def __post_init__(self):
