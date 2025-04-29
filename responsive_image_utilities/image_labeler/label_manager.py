@@ -74,7 +74,9 @@ class LabelManager:
     def __init__(self, config: LabelManagerConfig):
         self.config = config
 
-        self.image_loader = ImageLoader(self.config.images_dir)
+        self.image_loader = ImageLoader(
+            self.config.images_dir, shuffle=self.config.shuffle_images
+        )
         self.label_writer = LabelWriter(
             self.config.label_csv_path,
             self.config.overwrite_label_csv,

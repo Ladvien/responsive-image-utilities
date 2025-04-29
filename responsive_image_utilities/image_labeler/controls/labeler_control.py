@@ -1,7 +1,5 @@
 import time
-from typing import Callable
 import flet as ft
-from rich import print
 from pynput.keyboard import Key, KeyCode
 
 from responsive_image_utilities.image_labeler.controls.image_pair_view import (
@@ -15,7 +13,6 @@ from responsive_image_utilities.image_labeler.controls.noise_control import (
     NoiseControl,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
-from responsive_image_utilities.image_labeler.label_manager import UnlabeledImagePair
 
 
 class ImageLabelerControl(ft.Column):

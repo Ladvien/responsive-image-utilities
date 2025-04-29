@@ -60,13 +60,21 @@ class IQAConfig:
     num_workers: int = 4
     epochs: int = 10
     val_split: float = 0.1
+    test_split: float = 0.1
     learning_rate: float = 1e-4
     img_size: int = 224
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    early_stopping_patience: int = 5
+    device: str | None = None
 
     def __post_init__(self):
         Path(self.model_save_folder).mkdir(parents=True, exist_ok=True)
         self.model_save_path = Path(self.model_save_folder) / self.model_save_name
+        if torch.backends.mps.is_available():
+            self.device = "mps"
+        elif torch.cuda.is_available():
+            self.device = "cuda"
+        else:
+            self.device = "cpu"
 
 
 class ImageQualityClassifierTrainer:
@@ -83,19 +91,31 @@ class ImageQualityClassifierTrainer:
             ]
         )
 
-        dataset = BinaryIQADataset(config.csv_path, transform, config.root_dir)
-        val_size = int(len(dataset) * config.val_split)
-        train_size = len(dataset) - val_size
-        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+        full_dataset = BinaryIQADataset(config.csv_path, transform, config.root_dir)
+
+        total_size = len(full_dataset)
+        test_size = int(total_size * config.test_split)
+        val_size = int(total_size * config.val_split)
+        train_size = total_size - val_size - test_size
+
+        self.train_dataset, self.val_dataset, self.test_dataset = random_split(
+            full_dataset, [train_size, val_size, test_size]
+        )
 
         self.train_loader = DataLoader(
-            train_dataset,
+            self.train_dataset,
             batch_size=config.batch_size,
             shuffle=True,
             num_workers=config.num_workers,
         )
         self.val_loader = DataLoader(
-            val_dataset,
+            self.val_dataset,
+            batch_size=config.batch_size,
+            shuffle=False,
+            num_workers=config.num_workers,
+        )
+        self.test_loader = DataLoader(
+            self.test_dataset,
             batch_size=config.batch_size,
             shuffle=False,
             num_workers=config.num_workers,
@@ -105,12 +125,13 @@ class ImageQualityClassifierTrainer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate)
         self.criterion = nn.BCEWithLogitsLoss()
 
-    def train(self):
-        best_loss = float("inf")
+        self.best_test_loss = float("inf")
+        self.epochs_since_improvement = 0
 
+    def train(self):
         for epoch in range(self.config.epochs):
             self.model.train()
-            losses = []
+            train_losses = []
 
             for batch in tqdm(
                 self.train_loader, desc=f"Epoch {epoch + 1}/{self.config.epochs}"
@@ -123,28 +144,41 @@ class ImageQualityClassifierTrainer:
                 loss = self.criterion(logits, y)
                 loss.backward()
                 self.optimizer.step()
-                losses.append(loss.item())
+                train_losses.append(loss.item())
 
-            avg_train_loss = sum(losses) / len(losses)
-            print(f"[Epoch {epoch + 1}] Train BCE Loss: {avg_train_loss:.4f}")
+            avg_train_loss = sum(train_losses) / len(train_losses)
+            val_loss, val_acc = self.evaluate(self.val_loader)
+            test_loss, test_acc = self.evaluate(self.test_loader)
 
-            val_loss, val_acc = self.evaluate()
-            print(
-                f"[Epoch {epoch + 1}] Val Loss: {val_loss:.4f} | Accuracy: {val_acc:.4f}"
-            )
+            print(f"[Epoch {epoch + 1}]")
+            print(f"  Train Loss: {avg_train_loss:.4f}")
+            print(f"  Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}")
+            print(f"  Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
 
-            if val_loss < best_loss:
-                print(f"✅ New best model! Saving to {self.config.model_save_path}")
-                best_loss = val_loss
+            if test_loss < self.best_test_loss:
+                print(
+                    f"✅ New best test loss! Saving model to {self.config.model_save_path}"
+                )
+                self.best_test_loss = test_loss
                 torch.save(self.model.state_dict(), self.config.model_save_path)
+                self.epochs_since_improvement = 0
+            else:
+                self.epochs_since_improvement += 1
+                print(
+                    f"⏳ No improvement. {self.epochs_since_improvement} epochs without improvement."
+                )
 
-    def evaluate(self):
+            if self.epochs_since_improvement >= self.config.early_stopping_patience:
+                print("🛑 Early stopping triggered.")
+                break
+
+    def evaluate(self, loader):
         self.model.eval()
         losses = []
         correct, total = 0, 0
 
         with torch.no_grad():
-            for batch in self.val_loader:
+            for batch in loader:
                 x = batch["image"].to(self.config.device)
                 y = batch["label"].to(self.config.device)
 
@@ -156,8 +190,6 @@ class ImageQualityClassifierTrainer:
                 correct += (preds == y).sum().item()
                 total += y.size(0)
 
-        if len(losses) == 0:
-            print("⚠️ Warning: Validation set is empty or malformed.")
-            return None
-
-        return sum(losses) / len(losses), correct / total
+        avg_loss = sum(losses) / len(losses)
+        acc = correct / total
+        return avg_loss, acc

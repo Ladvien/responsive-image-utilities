@@ -19,6 +19,8 @@ class LabelManagerConfig:
 
     image_samples: int | None = None
 
+    shuffle_images: bool = True
+
     def __post_init__(self):
         if self.label_csv_path is None:
             self.label_csv_path = os.path.join(self.output_dir, "labels.csv")

@@ -6,7 +6,7 @@ from responsive_image_utilities.image_quality_assessor.train.dynamic import (
 
 if __name__ == "__main__":
     config = IQAConfig(
-        csv_path="training_data/aiqa/labels.csv",
+        csv_path="training_data/aiqa_backup/labels.csv",
         model_save_folder="models",
         model_save_name="mobilenetv2_binary_iqa.pth",
         batch_size=32,

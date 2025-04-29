@@ -2,13 +2,17 @@ from glob import glob
 from pathlib import Path
 from typing import Iterable, List
 from PIL import Image as PILImage
+import random
 
 from .image_path import ImagePath
 
 
 class ImageLoader:
-    def __init__(self, input_folder: str, extensions: List[str] = None):
+    def __init__(
+        self, input_folder: str, extensions: List[str] = None, shuffle: bool = False
+    ):
         self.input_folder = input_folder
+        self.shuffle = shuffle
         if extensions:
             self.extensions = [ext.lower() for ext in extensions]
         else:
@@ -86,7 +90,10 @@ class ImageLoader:
                 f"No files found in '{self.input_folder}' with extensions {self.extensions}."
             )
 
-        filtered_image_paths.sort()
+        if self.shuffle:
+            random.shuffle(filtered_image_paths)
+        else:
+            filtered_image_paths.sort()
 
         potential_image_paths = [ImagePath(path) for path in filtered_image_paths]
 
