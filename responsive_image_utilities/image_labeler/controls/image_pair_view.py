@@ -59,7 +59,7 @@ class ImagePairViewer(ft.Container):
         )
         self.expand = True
 
-    def update_images(self, pair: UnlabeledImagePair):
+    def update_images(self, pair: UnlabeledImagePair | LabeledImagePair):
         self.original.update_images(pair.original_image_path)
         self.noisy.update_images(pair.noisy_image_path)
         self.update()

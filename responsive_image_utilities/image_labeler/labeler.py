@@ -30,6 +30,7 @@ class LabelAppFactory:
             page.theme_mode = ft.ThemeMode.SYSTEM
             page.window.always_on_top = True
             page.window.focused = True
+            page.window.full_screen = True
 
             color_scheme = LabelerColorScheme.flet_color_scheme()
             page.bgcolor = LabelerColorScheme.BACKGROUND
@@ -57,7 +58,7 @@ class LabelAppFactory:
             views = {
                 0: review,
                 1: image_labeler,
-                2: ft.Text("About view (placeholder)", size=20),
+                # 2: ft.Text("About view (placeholder)", size=20),
             }
 
             content_area = ft.Container(content=views[0], expand=True)
@@ -76,7 +77,7 @@ class LabelAppFactory:
                 destinations=[
                     NavDest(icon=ft.icons.RATE_REVIEW, label="Review"),
                     NavDest(icon=ft.icons.IMAGE, label="Labeling"),
-                    NavDest(icon=ft.icons.INFO, label="About"),
+                    # NavDest(icon=ft.icons.INFO, label="About"),
                 ],
                 on_change=switch_page,
             )
