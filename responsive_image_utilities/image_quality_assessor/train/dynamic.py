@@ -12,6 +12,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from sklearn.metrics import roc_auc_score
 
+
 class SiameseIQADataset(Dataset):
     def __init__(self, csv_file, transform=None, root_dir=None):
         self.df = pd.read_csv(csv_file)
@@ -21,7 +22,7 @@ class SiameseIQADataset(Dataset):
 
     def __len__(self):
         return len(self.df)
-    
+
     def __safe_load(self, path) -> Image.Image:
         img = Image.open(path)
 
@@ -35,12 +36,10 @@ class SiameseIQADataset(Dataset):
 
         return img
 
-
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        orig_path = Path(self.root_dir) / row["original_path"]
+        orig_path = Path(self.root_dir) / row["original_image_path"]
         noisy_path = Path(self.root_dir) / row["noisy_path"]
-
 
         orig_img = self.__safe_load(orig_path)
         noisy_img = self.__safe_load(noisy_path)
@@ -103,13 +102,17 @@ class ImageQualityClassifierTrainer:
     def __init__(self, config: IQAConfig):
         self.config = config
 
-        transform = transforms.Compose([
-            transforms.Resize((config.img_size, config.img_size)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(5),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.Resize((config.img_size, config.img_size)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(5),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
         full_dataset = SiameseIQADataset(config.csv_path, transform, config.root_dir)
 
@@ -122,15 +125,38 @@ class ImageQualityClassifierTrainer:
             full_dataset, [train_size, val_size, test_size]
         )
 
-        self.train_loader = DataLoader(self.train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=config.num_workers)
-        self.val_loader = DataLoader(self.val_dataset, batch_size=config.batch_size, shuffle=False, num_workers=config.num_workers)
-        self.test_loader = DataLoader(self.test_dataset, batch_size=config.batch_size, shuffle=False, num_workers=config.num_workers)
+        self.train_loader = DataLoader(
+            self.train_dataset,
+            batch_size=config.batch_size,
+            shuffle=True,
+            num_workers=config.num_workers,
+        )
+        self.val_loader = DataLoader(
+            self.val_dataset,
+            batch_size=config.batch_size,
+            shuffle=False,
+            num_workers=config.num_workers,
+        )
+        self.test_loader = DataLoader(
+            self.test_dataset,
+            batch_size=config.batch_size,
+            shuffle=False,
+            num_workers=config.num_workers,
+        )
 
         self.model = SiameseResNetClassifier().to(config.device)
-        self.optimizer = self.optimizer = optim.Adam([
-            {"params": self.model.feature_extractor.parameters(), "lr": config.learning_rate * 0.1},
-            {"params": self.model.classifier.parameters(), "lr": config.learning_rate},
-        ])
+        self.optimizer = self.optimizer = optim.Adam(
+            [
+                {
+                    "params": self.model.feature_extractor.parameters(),
+                    "lr": config.learning_rate * 0.1,
+                },
+                {
+                    "params": self.model.classifier.parameters(),
+                    "lr": config.learning_rate,
+                },
+            ]
+        )
 
         self.criterion = nn.BCEWithLogitsLoss()
 
@@ -142,7 +168,9 @@ class ImageQualityClassifierTrainer:
             self.model.train()
             train_losses = []
 
-            for batch in tqdm(self.train_loader, desc=f"Epoch {epoch + 1}/{self.config.epochs}"):
+            for batch in tqdm(
+                self.train_loader, desc=f"Epoch {epoch + 1}/{self.config.epochs}"
+            ):
                 x1 = batch["original"].to(self.config.device)
                 x2 = batch["noisy"].to(self.config.device)
                 y = batch["label"].to(self.config.device)
@@ -158,27 +186,31 @@ class ImageQualityClassifierTrainer:
             val_loss, val_acc, val_auc = self.evaluate(self.val_loader)
             test_loss, test_acc, test_auc = self.evaluate(self.test_loader)
 
-
             print(f"[Epoch {epoch + 1}]")
             print(f"  Train Loss: {avg_train_loss:.4f}")
-            print(f"  Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f} | Val AUC: {val_auc:.4f}")
-            print(f"  Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f} | Test AUC: {test_auc:.4f}")
-
+            print(
+                f"  Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f} | Val AUC: {val_auc:.4f}"
+            )
+            print(
+                f"  Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f} | Test AUC: {test_auc:.4f}"
+            )
 
             if test_loss < self.best_test_loss:
-                print(f"✅ New best test loss! Saving model to {self.config.model_save_path}")
+                print(
+                    f"✅ New best test loss! Saving model to {self.config.model_save_path}"
+                )
                 self.best_test_loss = test_loss
                 torch.save(self.model.state_dict(), self.config.model_save_path)
                 self.epochs_since_improvement = 0
             else:
                 self.epochs_since_improvement += 1
-                print(f"⏳ No improvement. {self.epochs_since_improvement} epochs without improvement.")
+                print(
+                    f"⏳ No improvement. {self.epochs_since_improvement} epochs without improvement."
+                )
 
             if self.epochs_since_improvement >= self.config.early_stopping_patience:
                 print("🛑 Early stopping triggered.")
                 break
-
-    
 
     def evaluate(self, loader):
         self.model.eval()
@@ -214,10 +246,9 @@ class ImageQualityClassifierTrainer:
             auc = roc_auc_score(all_labels, probs)
         except ValueError:
             # Happens if only one class in batch
-            auc = float('nan')
+            auc = float("nan")
 
         return avg_loss, acc, auc
-
 
 
 if __name__ == "__main__":

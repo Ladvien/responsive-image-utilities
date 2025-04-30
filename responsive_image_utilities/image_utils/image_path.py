@@ -13,6 +13,10 @@ class ImagePath:
     path: str
     name: str | None = None
 
+    @classmethod
+    def from_path(cls, path: str) -> ImagePath:
+        return cls(path=path, name=os.path.basename(path))
+
     def load(self, show_on_load: bool = False) -> PILImage.Image:
         image = PILImage.open(self.path).convert("RGB")
         if show_on_load:

@@ -74,7 +74,6 @@ class ImageLabelerControl(ft.Column):
                                     ft.Container(
                                         content=self.noise_control,
                                         padding=10,
-                                        bgcolor=self.color_scheme.primary,
                                         border_radius=10,
                                         expand=True,
                                         alignment=ft.alignment.center_right,
@@ -82,7 +81,6 @@ class ImageLabelerControl(ft.Column):
                                     ft.Container(
                                         content=self.progress_area,
                                         padding=10,
-                                        bgcolor=self.color_scheme.primary,
                                         border_radius=10,
                                         expand=True,
                                         alignment=ft.alignment.center_right,

@@ -21,6 +21,14 @@ class NoiseControl(ft.Column):
         self.on_change_end = on_end_change
         self.on_resample_click = on_resample_click
 
+        # Use provided theme or fallback
+        self.color_scheme = color_scheme or ft.ColorScheme(
+            primary="#7F00FF",
+            on_primary="#FFFFFF",
+            on_surface="#FFFFFF",
+            on_background="#CCCCCC",
+        )
+
         # Labels for the current start and end values
         self.start_value_label = ft.Text(
             f"{initial_range[0] * 100}%", text_align=ft.TextAlign.CENTER

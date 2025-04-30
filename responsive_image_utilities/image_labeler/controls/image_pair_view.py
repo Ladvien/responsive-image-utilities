@@ -1,5 +1,8 @@
 import flet as ft
-from responsive_image_utilities.image_labeler.label_manager import UnlabeledImagePair
+from responsive_image_utilities.image_labeler.label_manager import (
+    LabeledImagePair,
+    UnlabeledImagePair,
+)
 from responsive_image_utilities.image_labeler.controls.image_with_label import (
     ImageWithLabel,
 )
@@ -8,7 +11,7 @@ from responsive_image_utilities.image_labeler.controls.image_with_label import (
 class ImagePairViewer(ft.Container):
     def __init__(
         self,
-        pair: UnlabeledImagePair,
+        pair: UnlabeledImagePair | LabeledImagePair,
         color_scheme: ft.ColorScheme | None = None,
     ):
         super().__init__()

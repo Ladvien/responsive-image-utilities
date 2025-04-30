@@ -85,7 +85,7 @@ def test_label_writer_initializes_file(setup_test_environment):
     with open(LABELS_CSV_PATH, newline="") as f:
         reader = csv.reader(f)
         header = next(reader)
-        assert header == ["original_path", "noisy_path", "label"]
+        assert header == ["original_image_path", "noisy_path", "label"]
 
 
 def test_unlabeled_image_pair_label_returns_labeled_pair(setup_test_environment):
@@ -126,7 +126,7 @@ def test_label_manager_save_label_adds_label(
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    assert any(row["original_path"] == str(original) for row in rows)
+    assert any(row["original_image_path"] == str(original) for row in rows)
 
 
 def test_label_manager_save_label_raises_on_duplicate(

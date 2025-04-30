@@ -34,15 +34,13 @@ class LabelingProgress(ft.Container):
             expand=True,
         )
 
-        self.content = ft.Container(
-            content=ft.Column(
-                [
-                    self.text,
-                    self.progress,
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
+        self.content = ft.Column(
+            [
+                self.text,
+                self.progress,
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
         self.expand = expand
