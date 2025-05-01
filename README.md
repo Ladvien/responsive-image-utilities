@@ -1,6 +1,13 @@
 # responsive-image-utilities
 A module for creating responsive images, with a simple API.
 
+## Labeler Issues
+- Break labeler into a separate repo.
+- Save labels to folder above images to ensure it's easy to find.
+- Make the CSV writer save relative paths and the config take the "root path" to ensure this automatically works on all systems.
+
+
+
 ## Description
 - Image srcset tags are created
 - Module can detect images resized too small, avoids it
