@@ -10,7 +10,7 @@ from responsive_image_utilities.image_labeler.label_manager import (
 )
 
 
-class ReviewControl(ft.Column):
+class ReviewControlView(ft.Column):
     def __init__(
         self,
         labeled_image_pairs: list[LabeledImagePair],
@@ -34,6 +34,14 @@ class ReviewControl(ft.Column):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.spacing = 0
 
+        self.label_name_text = ft.Text(
+            self.labeled_image_pairs[0].label,
+            size=14,
+            weight=ft.FontWeight.BOLD,
+            color=self.color_scheme.secondary,
+            text_align=ft.TextAlign.RIGHT,
+        )
+
         self.controls = [
             ft.Container(
                 content=self.image_pair_viewer,
@@ -47,37 +55,21 @@ class ReviewControl(ft.Column):
                     [
                         # 3/4 of width: Instructions + Slider
                         ft.Container(
-                            content=ft.Row(
+                            content=ft.Column(
                                 [
-                                    # ft.Container(
-                                    #     content=Instructions(
-                                    #         color_scheme=self.color_scheme
-                                    #     ),
-                                    #     padding=10,
-                                    #     expand=True,
-                                    #     alignment=ft.alignment.center_left,
-                                    # ),
-                                    # ft.Container(
-                                    #     content=self.noise_control,
-                                    #     padding=10,
-                                    #     bgcolor=self.color_scheme.primary,
-                                    #     border_radius=10,
-                                    #     expand=True,
-                                    #     alignment=ft.alignment.center_right,
-                                    # ),
-                                    # ft.Container(
-                                    #     content=self.progress_area,
-                                    #     padding=10,
-                                    #     bgcolor=self.color_scheme.primary,
-                                    #     border_radius=10,
-                                    #     expand=True,
-                                    #     alignment=ft.alignment.center_right,
-                                    # ),
+                                    ft.Text(
+                                        "Label:",
+                                        size=20,
+                                        color=self.color_scheme.secondary,
+                                        weight=ft.FontWeight.W_600,
+                                    ),
+                                    self.label_name_text,
                                 ],
-                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                # vertical_alignment=ft.CrossAxisAlignment.CENTER,
                             ),
-                            expand=3,  # 3/4 width
+                            expand=3,  # 3/4 widt h
                         ),
                     ],
                     expand=True,
@@ -92,6 +84,7 @@ class ReviewControl(ft.Column):
     def update_image_pair_viewer(self):
         print(f"Updating image pair viewer with index: {self.__index}")
         labeled_pair = self.labeled_image_pairs[self.__index]
+        self.label_name_text.value = labeled_pair.label
         self.image_pair_viewer.update_images(labeled_pair)
 
     def handle_keyboard_event(self, key: Key | KeyCode) -> bool:
@@ -103,10 +96,8 @@ class ReviewControl(ft.Column):
 
         if key.name in ("right", "left"):
             if key.name == "right":
-                # if self.__index < len(self.labeled_image_pairs) - 1:
                 self.__index += 1
             elif key.name == "left":
-                # if self.__index > 0:
                 self.__index -= 1
 
             self.update_image_pair_viewer()
@@ -114,8 +105,8 @@ class ReviewControl(ft.Column):
 
             return True
 
-        elif key.name == "space" and self.__can_label():
-            self.__resample_images()
+        elif key.name == "space":
+
             return True
 
     def __debounce_keypress(self) -> bool:

@@ -7,7 +7,7 @@ from rich import print
 
 from responsive_image_utilities.image_labeler import LabelerConfig
 from responsive_image_utilities.image_labeler.views.labeler_control import (
-    ImageLabelerControl,
+    ImageLabelerControlView,
 )
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
 from responsive_image_utilities.image_labeler.color_scheme import LabelerColorScheme
@@ -15,7 +15,9 @@ from responsive_image_utilities.image_labeler.color_scheme import LabelerColorSc
 
 from flet import NavigationRailDestination as NavDest
 
-from responsive_image_utilities.image_labeler.views.review_control import ReviewControl
+from responsive_image_utilities.image_labeler.views.review_control import (
+    ReviewControlView,
+)
 
 
 class LabelAppFactory:
@@ -50,9 +52,9 @@ class LabelAppFactory:
                 page.add(ft.Text("No images found."))
                 return
 
-            image_labeler = ImageLabelerControl(label_manager, color_scheme)
+            image_labeler = ImageLabelerControlView(label_manager, color_scheme)
             labeled_image_pairs = label_manager.get_labeled_image_pairs()
-            review = ReviewControl(labeled_image_pairs, color_scheme)
+            review = ReviewControlView(labeled_image_pairs, color_scheme)
 
             # Placeholder page content dict
             views = {
@@ -75,8 +77,8 @@ class LabelAppFactory:
                 min_width=80,
                 min_extended_width=200,
                 destinations=[
-                    NavDest(icon=ft.icons.RATE_REVIEW, label="Review"),
-                    NavDest(icon=ft.icons.IMAGE, label="Labeling"),
+                    NavDest(icon=ft.Icons.RATE_REVIEW, label="Review"),
+                    NavDest(icon=ft.Icons.IMAGE, label="Labeling"),
                     # NavDest(icon=ft.icons.INFO, label="About"),
                 ],
                 on_change=switch_page,
@@ -99,12 +101,12 @@ class LabelAppFactory:
                 silent_focus.value = ""
                 silent_focus.focus()
 
-                if isinstance(content_area.content, ImageLabelerControl):
+                if isinstance(content_area.content, ImageLabelerControlView):
                     handled = content_area.content.handle_keyboard_event(key)
                     if handled:
                         page.update()
 
-                if isinstance(content_area.content, ReviewControl):
+                if isinstance(content_area.content, ReviewControlView):
                     handled = content_area.content.handle_keyboard_event(key)
                     if handled:
                         page.update()

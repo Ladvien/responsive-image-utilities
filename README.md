@@ -65,3 +65,20 @@ https://superuser.com/questions/1165762/same-data-takes-more-space-on-external-h
 3. This will produced a new `merged.csv` file.
 4. On the downloading device, replace `laion-aesthetics-12m-umap-urls-and-hashes.csv` with `merged.csv`.
 5. Restart the `pi_downloader.py`
+
+
+
+## Dev Chats
+```
+Ok, so, I've written a blog for many years.  I've recently converted it from Jekyll to pelican.  I've written my own theme and plugins, as many are out of date.  One of the web development issues I've had for years is responsive images.
+
+I understand responsive images are a must, but with the blog, I've many images from the old day and are in low resolutions.  These images can't be further compressed.  So, this puts me in a dilemma.  I don't want to spend all of my time sorting through old images determining what is the minimum resolution or compression each can take.  I want an _automated_ solution.
+
+I began exploring image quality assessment algorithms (IQA).  I've reviewed both referential and non-referential.  I've tested many of them and the don't give me a good idea of the overall quality of an image I'd compressed or resized.  That is, the score the models would predict did not line up with what I expected to see what I visually inspected them.
+
+This led me to work if this is a problem best solved by a deep neural net.  My thought, randomly distort images, labeling them myself.  (I've built my own labeler, so if we need any special features to label them quickly, please consider this). These labeled images would let me train a DNN to detect which of the srcset image resolution sizes were too lower to be worth displaying, then remove those images from the srcset.  This should allow me to put little thought (hah, too late) into maintaining old images or noisy images.
+
+Could you please review this approach against the literature or engineering blogs to determine if this is a valid way to approach the problem?  Or is this problem better solved by a non-stochastic algorithms?  If so, what are they?  Also, if the DNN approach is the best of current art, then make recommendations how it may be improved.
+
+ps. I love you.
+```

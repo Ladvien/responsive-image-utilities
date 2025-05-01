@@ -15,7 +15,7 @@ from responsive_image_utilities.image_labeler.controls.noise_control import (
 from responsive_image_utilities.image_labeler.label_manager import LabelManager
 
 
-class ImageLabelerControl(ft.Column):
+class ImageLabelerControlView(ft.Column):
     def __init__(
         self,
         label_manager: LabelManager,

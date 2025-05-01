@@ -65,9 +65,9 @@ class NoiseControl(ft.Column):
 
         self.refresh_button = ft.ElevatedButton(
             "Resample",
-            icon=ft.icons.REFRESH,
+            icon=ft.Icons.REFRESH,
             style=ft.ButtonStyle(
-                bgcolor=ft.colors.with_opacity(0.1, ft.colors.ON_SURFACE),
+                bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.ON_SURFACE),
                 padding=ft.padding.symmetric(horizontal=20, vertical=10),
                 shape=ft.RoundedRectangleBorder(radius=6),
             ),

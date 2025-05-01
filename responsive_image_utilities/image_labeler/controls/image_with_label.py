@@ -10,7 +10,7 @@ class ImageWithLabel(ft.Column):
         color_scheme: ft.ColorScheme | None = None,
     ):
         super().__init__()
-
+        self.image_path = image_path
         # Use provided theme or fallback
         self.color_scheme = color_scheme or ft.ColorScheme(
             primary="#7F00FF",
@@ -35,30 +35,40 @@ class ImageWithLabel(ft.Column):
             expand=True,
         )
 
+        self.label_text = ft.Text(
+            label_text,
+            size=22,
+            weight=ft.FontWeight.BOLD,
+            color=self.color_scheme.on_surface,
+            text_align=ft.TextAlign.CENTER,
+        )
+
+        self.name = ft.Text(
+            image_path.name,
+            size=14,
+            color=self.color_scheme.on_background,
+            text_align=ft.TextAlign.CENTER,
+        )
+
+        self.__set_images(image_path)
+
         # Assemble controls
         self.controls = [
-            ft.Text(
-                label_text,
-                size=22,
-                weight=ft.FontWeight.BOLD,
-                color=self.color_scheme.on_surface,
-                text_align=ft.TextAlign.CENTER,
-            ),
+            self.label_text,
             self.image_container,
-            ft.Text(
-                image_path.name,
-                size=14,
-                color=self.color_scheme.on_background,
-                text_align=ft.TextAlign.CENTER,
-            ),
+            self.name,
         ]
 
         self.alignment = ft.MainAxisAlignment.CENTER
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.expand = True
 
-        self.update_images(image_path)
+    def __set_images(self, image_path: ImagePath):
+        self.name.value = image_path.name
+        self.image.src_base64 = image_path.load_as_base64()
 
     def update_images(self, image_path: ImagePath):
         """Update the displayed image from a new ImagePath."""
-        self.image.src_base64 = image_path.load_as_base64()
+        self.__set_images(image_path)
+        self.image.update()
+        self.name.update()

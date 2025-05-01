@@ -5,12 +5,16 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
-from torchvision.models import resnet18
+from torchvision.models import vit_b_16
 from tqdm import tqdm
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
 from sklearn.metrics import roc_auc_score
+
+# =========================
+# Dataset
+# =========================
 
 
 class SiameseIQADataset(Dataset):
@@ -25,21 +29,16 @@ class SiameseIQADataset(Dataset):
 
     def __safe_load(self, path) -> Image.Image:
         img = Image.open(path)
-
-        # Handle palette images or RGBA images
-        if img.mode == "P" or img.mode == "RGBA":
-            img = img.convert("RGBA")
-            # Discard alpha channel
-            img = img.convert("RGB")
+        if img.mode in ["P", "RGBA"]:
+            img = img.convert("RGBA").convert("RGB")
         elif img.mode != "RGB":
             img = img.convert("RGB")
-
         return img
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
         orig_path = Path(self.root_dir) / row["original_image_path"]
-        noisy_path = Path(self.root_dir) / row["noisy_path"]
+        noisy_path = Path(self.root_dir) / row["noisy_image_path"]
 
         orig_img = self.__safe_load(orig_path)
         noisy_img = self.__safe_load(noisy_path)
@@ -52,23 +51,50 @@ class SiameseIQADataset(Dataset):
         return {"original": orig_img, "noisy": noisy_img, "label": label}
 
 
-class SiameseResNetClassifier(nn.Module):
+# =========================
+# Siamese ViT Model
+# =========================
+
+
+class SiameseViTClassifier(nn.Module):
     def __init__(self):
         super().__init__()
-        base = resnet18(pretrained=True)
-        self.feature_extractor = nn.Sequential(*list(base.children())[:-1])
+        base_vit = vit_b_16(weights=True)
+        # Remove classifier head
+        self.feature_extractor = nn.Sequential(
+            base_vit._modules["conv_proj"],
+            nn.Flatten(start_dim=2),
+            nn.AdaptiveAvgPool1d(1),
+            nn.Flatten(start_dim=1),
+        )
+        embed_dim = 768  # ViT base output dim
+
         self.classifier = nn.Sequential(
-            nn.Linear(512, 128),
+            nn.Linear(embed_dim, 256),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(128, 1),
+            nn.Linear(256, 1),
         )
 
     def forward(self, img1, img2):
-        f1 = self.feature_extractor(img1).squeeze(-1).squeeze(-1)
-        f2 = self.feature_extractor(img2).squeeze(-1).squeeze(-1)
+        # ViT expects images sized (B, 3, 224, 224)
+        if img1.shape[-1] != 224:
+            img1 = nn.functional.interpolate(
+                img1, size=(224, 224), mode="bilinear", align_corners=False
+            )
+            img2 = nn.functional.interpolate(
+                img2, size=(224, 224), mode="bilinear", align_corners=False
+            )
+
+        f1 = self.feature_extractor(img1)
+        f2 = self.feature_extractor(img2)
         diff = torch.abs(f1 - f2)
         return self.classifier(diff)
+
+
+# =========================
+# Config
+# =========================
 
 
 @dataclass
@@ -76,15 +102,15 @@ class IQAConfig:
     csv_path: str
     model_save_folder: str
     root_dir: str = ""
-    model_save_name: str = "siamese_resnet_binary_iqa.pth"
-    batch_size: int = 32
+    model_save_name: str = "siamese_vit_binary_iqa.pth"
+    batch_size: int = 8
     num_workers: int = 4
-    epochs: int = 10
+    epochs: int = 20
     val_split: float = 0.1
     test_split: float = 0.1
-    learning_rate: float = 1e-3
-    img_size: int = 512
-    early_stopping_patience: int = 15
+    learning_rate: float = 1e-4
+    img_size: int = 224  # ViT requires 224x224
+    early_stopping_patience: int = 10
     device: str | None = None
 
     def __post_init__(self):
@@ -98,6 +124,11 @@ class IQAConfig:
             self.device = "cpu"
 
 
+# =========================
+# Trainer
+# =========================
+
+
 class ImageQualityClassifierTrainer:
     def __init__(self, config: IQAConfig):
         self.config = config
@@ -109,13 +140,13 @@ class ImageQualityClassifierTrainer:
                 transforms.RandomRotation(5),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
                 ),
             ]
         )
 
         full_dataset = SiameseIQADataset(config.csv_path, transform, config.root_dir)
-
         total_size = len(full_dataset)
         test_size = int(total_size * config.test_split)
         val_size = int(total_size * config.val_split)
@@ -144,20 +175,9 @@ class ImageQualityClassifierTrainer:
             num_workers=config.num_workers,
         )
 
-        self.model = SiameseResNetClassifier().to(config.device)
-        self.optimizer = self.optimizer = optim.Adam(
-            [
-                {
-                    "params": self.model.feature_extractor.parameters(),
-                    "lr": config.learning_rate * 0.1,
-                },
-                {
-                    "params": self.model.classifier.parameters(),
-                    "lr": config.learning_rate,
-                },
-            ]
-        )
+        self.model = SiameseViTClassifier().to(config.device)
 
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate)
         self.criterion = nn.BCEWithLogitsLoss()
 
         self.best_test_loss = float("inf")
@@ -186,8 +206,7 @@ class ImageQualityClassifierTrainer:
             val_loss, val_acc, val_auc = self.evaluate(self.val_loader)
             test_loss, test_acc, test_auc = self.evaluate(self.test_loader)
 
-            print(f"[Epoch {epoch + 1}]")
-            print(f"  Train Loss: {avg_train_loss:.4f}")
+            print(f"[Epoch {epoch + 1}] Train Loss: {avg_train_loss:.4f}")
             print(
                 f"  Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f} | Val AUC: {val_auc:.4f}"
             )
@@ -227,17 +246,13 @@ class ImageQualityClassifierTrainer:
                 logits = self.model(x1, x2)
                 loss = self.criterion(logits, y)
                 losses.append(loss.item())
-
                 all_labels.append(y.cpu())
                 all_logits.append(logits.cpu())
 
         avg_loss = sum(losses) / len(losses)
-
-        # Stack all batches together
         all_labels = torch.cat(all_labels).numpy()
         all_logits = torch.cat(all_logits).numpy()
 
-        # Compute metrics
         preds = (torch.sigmoid(torch.tensor(all_logits)) > 0.5).float().numpy()
         acc = (preds == all_labels).mean()
 
@@ -245,20 +260,23 @@ class ImageQualityClassifierTrainer:
             probs = torch.sigmoid(torch.tensor(all_logits)).numpy()
             auc = roc_auc_score(all_labels, probs)
         except ValueError:
-            # Happens if only one class in batch
             auc = float("nan")
 
         return avg_loss, acc, auc
 
 
+# =========================
+# Run training
+# =========================
+
 if __name__ == "__main__":
     config = IQAConfig(
         csv_path="training_data/aiqa/labels.csv",
         model_save_folder="models",
-        model_save_name="siamese_resnet_binary_iqa.pth",
-        batch_size=32,
-        epochs=500,
-        early_stopping_patience=50,
+        model_save_name="siamese_vit_binary_iqa.pth",
+        batch_size=8,
+        epochs=50,
+        early_stopping_patience=10,
         test_split=0.2,
     )
 
