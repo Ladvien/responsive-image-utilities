@@ -1,13 +1,6 @@
 # responsive-image-utilities
 A module for creating responsive images, with a simple API.
 
-## Labeler Issues
-- Break labeler into a separate repo.
-- Save labels to folder above images to ensure it's easy to find.
-- Make the CSV writer save relative paths and the config take the "root path" to ensure this automatically works on all systems.
-
-
-
 ## Description
 - Image srcset tags are created
 - Module can detect images resized too small, avoids it
@@ -42,13 +35,6 @@ https://huggingface.co/datasets/laion/aesthetics_v2_4.75
 https://huggingface.co/datasets/dclure/laion-aesthetics-12m-umap
 https://huggingface.co/datasets/recastai/coyo-10m-aesthetic
 
-
-## TODO:
-- Rework the API to normalize image score.
-
-
-## Done:
-- Add license and attribution (https://opensource.stackexchange.com/questions/8096/how-can-i-correctly-apply-the-apache-2-0-licence-to-contributed-code-from-an-exi)
 
 ```md
 ### Summary Checklist:

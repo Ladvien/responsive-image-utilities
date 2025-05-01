@@ -8,6 +8,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+image-utils = { path = "../image_utils", develop = true }
+adaptive-labeler = { path = "../adaptive_labeler", develop = true }
+
 pillow = "^10.4.0"
 torchvision = "^0.19.1"
 torch = "^2.4.0"

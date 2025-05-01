@@ -1,16 +1,7 @@
+from adaptive_labeler import LabelerConfig, LabelManagerConfig, LabelAppFactory
 import flet as ft
 import os
 
-from responsive_image_utilities.image_labeler import LabelAppFactory
-from responsive_image_utilities.image_labeler import (
-    LabelerConfig,
-)
-
-from responsive_image_utilities.image_labeler.label_manager_config import (
-    LabelManagerConfig,
-)
-from responsive_image_utilities.image_utils import ImageLoader
-from responsive_image_utilities.image_utils import ImageNoiser
 
 # WILO: Set the path to your images directory
 SOURCE_IMAGES_PATH = "/Users/ladvien/ladvien.com/content/images"
