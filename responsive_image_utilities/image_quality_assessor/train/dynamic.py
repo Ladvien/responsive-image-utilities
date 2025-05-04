@@ -5,25 +5,67 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
-from torchvision.models import vit_b_16
+from torchvision.models import vit_b_16, ViT_B_16_Weights
 from tqdm import tqdm
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
 from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
+import random
+from torchvision.models import mobilenet_v3_small
+
 
 # =========================
 # Dataset
 # =========================
 
+class PairedTransform:
+    def __init__(self, img_size=224, augment=True):
+        if augment:
+            self.transform = transforms.Compose([
+                transforms.Resize((img_size, img_size)),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomRotation(5),
+            ])
+        else:
+            self.transform = transforms.Resize((img_size, img_size))
+
+        self.to_tensor = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
+
+
+
+    def __call__(self, img1, img2):
+        seed = random.randint(0, 1000000)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        img1 = self.transform(img1)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        img2 = self.transform(img2)
+        return self.to_tensor(img1), self.to_tensor(img2)
+
+
+
 
 class SiameseIQADataset(Dataset):
-    def __init__(self, csv_file, transform=None, root_dir=None):
-        self.df = pd.read_csv(csv_file)
+    def __init__(self, csv_file_or_df, transform=None, root_dir=None):
+        if isinstance(csv_file_or_df, (str, Path)):
+            full_path = Path(csv_file_or_df)
+            self.df = pd.read_csv(full_path.resolve())
+        elif isinstance(csv_file_or_df, pd.DataFrame):
+            self.df = csv_file_or_df.reset_index(drop=True)
+        else:
+            raise ValueError("csv_file_or_df must be a file path or a DataFrame.")
+
         self.transform = transform
         self.root_dir = root_dir
         self.label_map = {"unacceptable": 0, "acceptable": 1}
-
+        
     def __len__(self):
         return len(self.df)
 
@@ -44,52 +86,41 @@ class SiameseIQADataset(Dataset):
         noisy_img = self.__safe_load(noisy_path)
 
         if self.transform:
-            orig_img = self.transform(orig_img)
-            noisy_img = self.transform(noisy_img)
+            orig_img, noisy_img = self.transform(orig_img, noisy_img)
 
         label = torch.tensor([self.label_map[row["label"]]], dtype=torch.float32)
         return {"original": orig_img, "noisy": noisy_img, "label": label}
-
 
 # =========================
 # Siamese ViT Model
 # =========================
 
 
+
 class SiameseViTClassifier(nn.Module):
     def __init__(self):
         super().__init__()
-        base_vit = vit_b_16(weights=True)
-        # Remove classifier head
-        self.feature_extractor = nn.Sequential(
-            base_vit._modules["conv_proj"],
-            nn.Flatten(start_dim=2),
-            nn.AdaptiveAvgPool1d(1),
-            nn.Flatten(start_dim=1),
-        )
-        embed_dim = 768  # ViT base output dim
+
+        base_cnn = mobilenet_v3_small(weights="DEFAULT")
+
+        base_cnn.classifier = nn.Identity()
+
+        self.feature_extractor = base_cnn
+
+        embed_dim = 576  # mobilenet_v3_small outputs 576-dim features
 
         self.classifier = nn.Sequential(
-            nn.Linear(embed_dim, 256),
+            nn.Linear(embed_dim * 3, 512),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(256, 1),
+            nn.Linear(512, 1),
         )
 
     def forward(self, img1, img2):
-        # ViT expects images sized (B, 3, 224, 224)
-        if img1.shape[-1] != 224:
-            img1 = nn.functional.interpolate(
-                img1, size=(224, 224), mode="bilinear", align_corners=False
-            )
-            img2 = nn.functional.interpolate(
-                img2, size=(224, 224), mode="bilinear", align_corners=False
-            )
-
         f1 = self.feature_extractor(img1)
         f2 = self.feature_extractor(img2)
-        diff = torch.abs(f1 - f2)
-        return self.classifier(diff)
+        combined = torch.cat([f1, f2, torch.abs(f1 - f2)], dim=-1)
+        return self.classifier(combined)
 
 
 # =========================
@@ -103,7 +134,7 @@ class IQAConfig:
     model_save_folder: str
     root_dir: str = ""
     model_save_name: str = "siamese_vit_binary_iqa.pth"
-    batch_size: int = 8
+    batch_size: int = 32
     num_workers: int = 4
     epochs: int = 20
     val_split: float = 0.1
@@ -117,10 +148,13 @@ class IQAConfig:
         Path(self.model_save_folder).mkdir(parents=True, exist_ok=True)
         self.model_save_path = Path(self.model_save_folder) / self.model_save_name
         if torch.backends.mps.is_available():
+            print("Using Apple Silicon GPU")
             self.device = "mps"
         elif torch.cuda.is_available():
+            print("Using GPU")
             self.device = "cuda"
         else:
+            print("Using CPU")
             self.device = "cpu"
 
 
@@ -133,34 +167,39 @@ class ImageQualityClassifierTrainer:
     def __init__(self, config: IQAConfig):
         self.config = config
 
-        transform = transforms.Compose(
-            [
-                transforms.Resize((config.img_size, config.img_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(5),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225],
-                ),
-            ]
+        # Paired transforms (only augment train)
+        train_transform = PairedTransform(config.img_size, augment=True)
+        eval_transform = PairedTransform(config.img_size, augment=False)  # disable augmentation
+
+
+        df = pd.read_csv(config.csv_path)
+
+        # ===============================
+        # Stratified Splitting ✅
+        # ===============================
+        train_df, test_df = train_test_split(
+            df, test_size=config.test_split, stratify=df['label'], random_state=42
+        )
+        train_df, val_df = train_test_split(
+            train_df, test_size=config.val_split, stratify=train_df['label'], random_state=42
         )
 
-        full_dataset = SiameseIQADataset(config.csv_path, transform, config.root_dir)
-        total_size = len(full_dataset)
-        test_size = int(total_size * config.test_split)
-        val_size = int(total_size * config.val_split)
-        train_size = total_size - val_size - test_size
+        # ===============================
+        # Build datasets for each split ✅
+        # ===============================
+        self.train_dataset = SiameseIQADataset(train_df, train_transform, config.root_dir)
+        self.val_dataset = SiameseIQADataset(val_df, eval_transform, config.root_dir)
+        self.test_dataset = SiameseIQADataset(test_df, eval_transform, config.root_dir)
 
-        self.train_dataset, self.val_dataset, self.test_dataset = random_split(
-            full_dataset, [train_size, val_size, test_size]
-        )
-
+        # ===============================
+        # Build loaders ✅
+        # ===============================
         self.train_loader = DataLoader(
             self.train_dataset,
             batch_size=config.batch_size,
             shuffle=True,
             num_workers=config.num_workers,
+            drop_last=True,
         )
         self.val_loader = DataLoader(
             self.val_dataset,
@@ -175,13 +214,27 @@ class ImageQualityClassifierTrainer:
             num_workers=config.num_workers,
         )
 
-        self.model = SiameseViTClassifier().to(config.device)
+        # ===============================
+        # Class imbalance weight ✅
+        # ===============================
+        neg = (train_df['label'] == 'unacceptable').sum()
+        pos = (train_df['label'] == 'acceptable').sum()
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate)
-        self.criterion = nn.BCEWithLogitsLoss()
+        pos_weight_value = max(neg / pos, 1.0) if pos > 0 else 1.0
+        pos_weight = torch.tensor([pos_weight_value], dtype=torch.float32).to(config.device)
+
+        print(f"🔎 pos_weight = {pos_weight_value:.4f} (neg={neg}, pos={pos})")
+
+        # ===============================
+        # Model, Optimizer, Loss ✅
+        # ===============================
+        self.model = SiameseViTClassifier().to(config.device)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=config.learning_rate)
+        self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
         self.best_test_loss = float("inf")
         self.epochs_since_improvement = 0
+
 
     def train(self):
         for epoch in range(self.config.epochs):
@@ -271,10 +324,9 @@ class ImageQualityClassifierTrainer:
 
 if __name__ == "__main__":
     config = IQAConfig(
-        csv_path="training_data/aiqa/labels.csv",
+        csv_path="training_data/labels.csv",
         model_save_folder="models",
         model_save_name="siamese_vit_binary_iqa.pth",
-        batch_size=8,
         epochs=50,
         early_stopping_patience=10,
         test_split=0.2,
