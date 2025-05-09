@@ -20,24 +20,28 @@ from torchvision.models import mobilenet_v3_small
 # Dataset
 # =========================
 
+
 class PairedTransform:
     def __init__(self, img_size=224, augment=True):
         if augment:
-            self.transform = transforms.Compose([
-                transforms.Resize((img_size, img_size)),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.RandomRotation(5),
-            ])
+            self.transform = transforms.Compose(
+                [
+                    transforms.Resize((img_size, img_size)),
+                    transforms.RandomHorizontalFlip(p=0.5),
+                    transforms.RandomRotation(5),
+                ]
+            )
         else:
             self.transform = transforms.Resize((img_size, img_size))
 
-        self.to_tensor = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
-        ])
-
-
+        self.to_tensor = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
     def __call__(self, img1, img2):
         seed = random.randint(0, 1000000)
@@ -48,8 +52,6 @@ class PairedTransform:
         torch.manual_seed(seed)
         img2 = self.transform(img2)
         return self.to_tensor(img1), self.to_tensor(img2)
-
-
 
 
 class SiameseIQADataset(Dataset):
@@ -65,7 +67,7 @@ class SiameseIQADataset(Dataset):
         self.transform = transform
         self.root_dir = root_dir
         self.label_map = {"unacceptable": 0, "acceptable": 1}
-        
+
     def __len__(self):
         return len(self.df)
 
@@ -91,10 +93,10 @@ class SiameseIQADataset(Dataset):
         label = torch.tensor([self.label_map[row["label"]]], dtype=torch.float32)
         return {"original": orig_img, "noisy": noisy_img, "label": label}
 
+
 # =========================
 # Siamese ViT Model
 # =========================
-
 
 
 class SiameseViTClassifier(nn.Module):
@@ -169,8 +171,9 @@ class ImageQualityClassifierTrainer:
 
         # Paired transforms (only augment train)
         train_transform = PairedTransform(config.img_size, augment=True)
-        eval_transform = PairedTransform(config.img_size, augment=False)  # disable augmentation
-
+        eval_transform = PairedTransform(
+            config.img_size, augment=False
+        )  # disable augmentation
 
         df = pd.read_csv(config.csv_path)
 
@@ -178,16 +181,21 @@ class ImageQualityClassifierTrainer:
         # Stratified Splitting ✅
         # ===============================
         train_df, test_df = train_test_split(
-            df, test_size=config.test_split, stratify=df['label'], random_state=42
+            df, test_size=config.test_split, stratify=df["label"], random_state=42
         )
         train_df, val_df = train_test_split(
-            train_df, test_size=config.val_split, stratify=train_df['label'], random_state=42
+            train_df,
+            test_size=config.val_split,
+            stratify=train_df["label"],
+            random_state=42,
         )
 
         # ===============================
         # Build datasets for each split ✅
         # ===============================
-        self.train_dataset = SiameseIQADataset(train_df, train_transform, config.root_dir)
+        self.train_dataset = SiameseIQADataset(
+            train_df, train_transform, config.root_dir
+        )
         self.val_dataset = SiameseIQADataset(val_df, eval_transform, config.root_dir)
         self.test_dataset = SiameseIQADataset(test_df, eval_transform, config.root_dir)
 
@@ -217,11 +225,13 @@ class ImageQualityClassifierTrainer:
         # ===============================
         # Class imbalance weight ✅
         # ===============================
-        neg = (train_df['label'] == 'unacceptable').sum()
-        pos = (train_df['label'] == 'acceptable').sum()
+        neg = (train_df["label"] == "unacceptable").sum()
+        pos = (train_df["label"] == "acceptable").sum()
 
         pos_weight_value = max(neg / pos, 1.0) if pos > 0 else 1.0
-        pos_weight = torch.tensor([pos_weight_value], dtype=torch.float32).to(config.device)
+        pos_weight = torch.tensor([pos_weight_value], dtype=torch.float32).to(
+            config.device
+        )
 
         print(f"🔎 pos_weight = {pos_weight_value:.4f} (neg={neg}, pos={pos})")
 
@@ -234,7 +244,6 @@ class ImageQualityClassifierTrainer:
 
         self.best_test_loss = float("inf")
         self.epochs_since_improvement = 0
-
 
     def train(self):
         for epoch in range(self.config.epochs):
@@ -324,7 +333,7 @@ class ImageQualityClassifierTrainer:
 
 if __name__ == "__main__":
     config = IQAConfig(
-        csv_path="training_data/labels.csv",
+        csv_path="training_data/seeds.csv",
         model_save_folder="models",
         model_save_name="siamese_vit_binary_iqa.pth",
         epochs=50,
