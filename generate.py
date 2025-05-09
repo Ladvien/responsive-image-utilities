@@ -13,7 +13,7 @@ from image_utils.utils import map_value
 
 CSV_PATH = "/Users/ladvien/responsive_images_workspace/adaptive_labeler/training_data/aiqa/seeds.csv"
 OUTPUT_CSV = Path(CSV_PATH).parent / "noisy_labels.csv"
-TRAINING_DIR = Path(CSV_PATH).parent / "training"
+TRAINING_DIR = Path(CSV_PATH).parent / "train"
 TRAINING_DIR.mkdir(exist_ok=True)
 
 print(f"✅ Training images will be saved to: {TRAINING_DIR}")
@@ -77,28 +77,34 @@ for _, row in df.iterrows():
     label = row["label"]
     image = PILImage.open(orig_path)
 
-    # Parse noise ops
-    operations = []
+    # Parse noise ops with order
+    ordered_ops = []
     fn_severity_dict = {fn: 0.0 for fn in ALL_NOISE_FUNCTIONS}
 
     for i in range(1, 11):
-        fn_name = row.get(f"fn_{i}")
+        fn_name = row.get(f"fn_{i}_name")
         threshold = row.get(f"fn_{i}_threshold")
-        if pd.notna(fn_name) and pd.notna(threshold):
-            operations.append((fn_name, float(threshold)))
+        order = row.get(f"fn_{i}_order")
+
+        if pd.notna(fn_name) and pd.notna(threshold) and pd.notna(order):
+            ordered_ops.append((int(order), fn_name, float(threshold)))
             fn_severity_dict[fn_name] = float(threshold)
 
-    if not operations:
-        print(f"⚠️  No noise operations for {orig_path}")
+    if not ordered_ops:
+        print(f"⚠️  No valid noise operations for {orig_path}")
         continue
 
-    noisy_image = apply_noise_pipeline(image, operations)
+    # Sort by provided fn_order
+    ordered_ops.sort()
+    pipeline_ops = [(fn, sev) for _, fn, sev in ordered_ops]
+
+    noisy_image = apply_noise_pipeline(image, pipeline_ops)
 
     # Output filename
     output_filename = f"{uuid4()}_{orig_path.stem}_noisy.jpg"
     output_path = TRAINING_DIR / output_filename
 
-    # Avoid overwriting (edge case, unlikely)
+    # Avoid overwriting
     if output_path.exists():
         print(f"⚠️  Skipping already existing: {output_path}")
         continue
