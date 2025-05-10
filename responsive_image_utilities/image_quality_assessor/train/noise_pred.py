@@ -4,11 +4,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
 # =========================
 # Dataset
@@ -22,11 +23,10 @@ class NoiseParameterDataset(torch.utils.data.Dataset):
         else:
             self.df = csv_file_or_df.reset_index(drop=True)
 
-        # Identify all noise parameter columns dynamically
         self.param_cols = [
             col
             for col in self.df.columns
-            if col not in ["original_image_path", "noisy_image_path", "label"]
+            if col not in ["original_image_path", "noisy_image_path", "label", "split"]
         ]
 
         self.label_map = {"unacceptable": 0, "acceptable": 1}
@@ -36,14 +36,11 @@ class NoiseParameterDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-
         thresholds = [
             row[col] if pd.notna(row[col]) else 0.0 for col in self.param_cols
         ]
         x = torch.tensor(thresholds, dtype=torch.float32)
-
         y_class = torch.tensor([self.label_map[row["label"]]], dtype=torch.float32)
-
         return {"x": x, "label": y_class}
 
 
@@ -61,14 +58,12 @@ class NoiseClassifierRegressor(nn.Module):
             nn.Linear(32, 32),
             nn.ReLU(),
         )
-        self.class_output = nn.Linear(32, 1)  # Binary classification
-        self.reg_output = nn.Linear(32, num_params)  # Regression for noise levels
+        self.class_output = nn.Linear(32, 1)
+        self.reg_output = nn.Linear(32, num_params)
 
     def forward(self, x):
         features = self.hidden(x)
-        class_logits = self.class_output(features)
-        reg_output = self.reg_output(features)
-        return class_logits, reg_output
+        return self.class_output(features), self.reg_output(features)
 
 
 # =========================
@@ -85,7 +80,6 @@ class IQAConfig:
     num_workers: int = 0
     epochs: int = 50
     val_split: float = 0.1
-    test_split: float = 0.2
     learning_rate: float = 1e-3
     early_stopping_patience: int = 10
     device: str = None
@@ -112,46 +106,29 @@ class IQAConfig:
 class NoiseTrainer:
     def __init__(self, config: IQAConfig):
         self.config = config
-
         df = pd.read_csv(config.csv_path)
+        df["split"] = df["split"].str.lower()
 
-        # ===================
-        # Stratified split
-        # ===================
-        train_df, test_df = train_test_split(
-            df, test_size=config.test_split, stratify=df["label"], random_state=42
-        )
-        train_df, val_df = train_test_split(
-            train_df,
-            test_size=config.val_split,
-            stratify=train_df["label"],
-            random_state=42,
-        )
+        train_df = df[df["split"] == "train"].copy()
+        test_df = df[df["split"] == "test"].copy()
 
-        # ===================
-        # Datasets & Param Columns
-        # ===================
+        val_df = train_df.sample(frac=config.val_split, random_state=42)
+        train_df = train_df.drop(val_df.index).reset_index(drop=True)
+        val_df = val_df.reset_index(drop=True)
+
         self.train_ds = NoiseParameterDataset(train_df)
         self.val_ds = NoiseParameterDataset(val_df)
         self.test_ds = NoiseParameterDataset(test_df)
 
         self.param_cols = self.train_ds.param_cols
-        print(
-            f"✅ Detected {len(self.param_cols)} parameter columns: {self.param_cols}"
-        )
+        print(f"✅ Found {len(self.param_cols)} noise parameters: {self.param_cols}")
 
-        # ===================
-        # Dataloaders
-        # ===================
         self.train_loader = DataLoader(
             self.train_ds, batch_size=config.batch_size, shuffle=True
         )
         self.val_loader = DataLoader(self.val_ds, batch_size=config.batch_size)
         self.test_loader = DataLoader(self.test_ds, batch_size=config.batch_size)
 
-        # ===================
-        # Model & Loss
-        # ===================
         self.model = NoiseClassifierRegressor(len(self.param_cols)).to(config.device)
         self.class_loss_fn = nn.BCEWithLogitsLoss()
         self.reg_loss_fn = nn.MSELoss()
@@ -173,22 +150,14 @@ class NoiseTrainer:
 
                 self.optimizer.zero_grad()
                 class_logits, reg_preds = self.model(x)
-
-                # Classification loss
                 class_loss = self.class_loss_fn(class_logits, y_class)
-
-                # Regression loss
                 reg_loss = self.reg_loss_fn(reg_preds, x)
-
                 loss = class_loss + 0.5 * reg_loss
-
                 loss.backward()
                 self.optimizer.step()
-
                 total_loss += loss.item()
 
             avg_train_loss = total_loss / len(self.train_loader)
-
             val_loss, val_acc, val_auc = self.evaluate(self.val_loader)
             test_loss, test_acc, test_auc = self.evaluate(self.test_loader)
 
@@ -200,19 +169,14 @@ class NoiseTrainer:
                 f"Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f} | Test AUC: {test_auc:.4f}"
             )
 
-            # Save if improved
             if val_loss < self.best_val_loss:
-                print(
-                    f"✅ New best validation loss. Saving model to {self.config.model_save_path}"
-                )
+                print(f"✅ New best model — saving to {self.config.model_save_path}")
                 self.best_val_loss = val_loss
                 self.epochs_since_improvement = 0
                 torch.save(self.model.state_dict(), self.config.model_save_path)
             else:
                 self.epochs_since_improvement += 1
-                print(
-                    f"⏳ No improvement. Patience counter: {self.epochs_since_improvement}"
-                )
+                print(f"⏳ No improvement. Patience: {self.epochs_since_improvement}")
 
             if self.epochs_since_improvement >= self.config.early_stopping_patience:
                 print("🛑 Early stopping triggered.")
@@ -220,49 +184,38 @@ class NoiseTrainer:
 
     def evaluate(self, loader):
         self.model.eval()
-        losses = []
-        all_labels = []
-        all_preds = []
+        losses, all_labels, all_preds = [], [], []
 
         with torch.no_grad():
             for batch in loader:
                 x = batch["x"].to(self.config.device)
                 y_class = batch["label"].to(self.config.device)
-
                 class_logits, reg_preds = self.model(x)
-
                 class_loss = self.class_loss_fn(class_logits, y_class)
                 reg_loss = self.reg_loss_fn(reg_preds, x)
-                total_loss = class_loss + 0.5 * reg_loss
-
-                losses.append(total_loss.item())
-
-                probs = torch.sigmoid(class_logits).detach().cpu().numpy()
+                losses.append((class_loss + 0.5 * reg_loss).item())
+                probs = torch.sigmoid(class_logits).cpu().numpy()
                 all_preds.extend(probs.flatten())
                 all_labels.extend(y_class.cpu().numpy().flatten())
 
-        avg_loss = sum(losses) / len(losses)
-
         preds_binary = (np.array(all_preds) > 0.5).astype(int)
-        all_labels = np.array(all_labels)
-
-        acc = (preds_binary == all_labels).mean()
+        acc = (preds_binary == np.array(all_labels)).mean()
 
         try:
             auc = roc_auc_score(all_labels, all_preds)
         except ValueError:
             auc = float("nan")
 
-        return avg_loss, acc, auc
+        return np.mean(losses), acc, auc
 
 
 # =========================
-# Run Training
+# Main
 # =========================
 
 if __name__ == "__main__":
     config = IQAConfig(
-        csv_path="/Users/ladvien/responsive_images_workspace/adaptive_labeler/training_data/aiqa/noisy_labels.csv",
+        csv_path="/Users/ladvien/responsive_images_workspace/responsive-image-utilities/responsive_image_utilities/training_data/aiqa/noisy_labels.csv",
         model_save_folder="models",
         epochs=500,
         early_stopping_patience=10,
@@ -271,18 +224,9 @@ if __name__ == "__main__":
     trainer = NoiseTrainer(config)
     trainer.train()
 
-    # ================================
-    # Visual inspection of predictions
-    # ================================
-
-    import matplotlib.pyplot as plt
-    from PIL import Image
-
-    # Reload best model
     trainer.model.load_state_dict(torch.load(config.model_save_path))
     trainer.model.eval()
 
-    # Get a batch from test loader
     batch = next(iter(trainer.test_loader))
     x = batch["x"].to(config.device)
     y_class = batch["label"].to(config.device)
@@ -305,15 +249,11 @@ if __name__ == "__main__":
         print(f"  Predicted thresh.: {reg_preds_np[i]}")
         print("")
 
-    # ================================
-    # Optional: plot predicted vs true thresholds
-    # ================================
-
     fig, axes = plt.subplots(
         1, len(trainer.param_cols), figsize=(5 * len(trainer.param_cols), 4)
     )
     if len(trainer.param_cols) == 1:
-        axes = [axes]  # Handle single subplot case
+        axes = [axes]
 
     for idx, col in enumerate(trainer.param_cols):
         ax = axes[idx]
@@ -323,30 +263,20 @@ if __name__ == "__main__":
         ax.set_title(col)
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
-        ax.plot([0, 1], [0, 1], "r--")  # reference line
+        ax.plot([0, 1], [0, 1], "r--")
 
     plt.tight_layout()
     plt.show()
 
-    import matplotlib.pyplot as plt
-    import torch
-    import pandas as pd
-    from pathlib import Path
-
-    print("🖼️ Visualizing predictions on test set...")
-
-    # Sample images
+    print("\n🖼️ Visualizing predictions on test set...")
     sample_df = trainer.test_ds.df.sample(n=6, random_state=42).reset_index(drop=True)
     fig, axs = plt.subplots(2, 3, figsize=(12, 8))
-
-    trainer.model.eval()
 
     for i, ax in enumerate(axs.flatten()):
         row = sample_df.iloc[i]
         img_path = Path(row["noisy_image_path"])
         label = row["label"]
 
-        # Prepare input tensor
         param_tensor = (
             torch.tensor(
                 [row[col] if pd.notna(row[col]) else 0.0 for col in trainer.param_cols],
@@ -356,13 +286,11 @@ if __name__ == "__main__":
             .to(config.device)
         )
 
-        # Get prediction
         with torch.no_grad():
             class_logit, _ = trainer.model(param_tensor)
             prob = torch.sigmoid(class_logit).item()
             pred_label = "acceptable" if prob > 0.5 else "unacceptable"
 
-        # Plot
         try:
             img = Image.open(img_path).convert("RGB")
             ax.imshow(img)

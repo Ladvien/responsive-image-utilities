@@ -175,3 +175,6 @@ fs.py
 storage
 
 temp.jpg
+
+*/models/*
+*/training_data/*

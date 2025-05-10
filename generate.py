@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from uuid import uuid4
 from PIL import Image as PILImage
+from sklearn.model_selection import train_test_split
 
 from image_utils.image_noiser import ImageNoiser
 from image_utils.utils import map_value
@@ -11,14 +12,21 @@ from image_utils.utils import map_value
 # CONFIGURATION
 # ==========================================
 
-CSV_PATH = "/Users/ladvien/responsive_images_workspace/adaptive_labeler/training_data/aiqa/seeds.csv"
+CSV_PATH = "/Users/ladvien/responsive_images_workspace/responsive-image-utilities/responsive_image_utilities/training_data/aiqa/seeds.csv"
 OUTPUT_CSV = Path(CSV_PATH).parent / "noisy_labels.csv"
-TRAINING_DIR = Path(CSV_PATH).parent / "train"
-TRAINING_DIR.mkdir(exist_ok=True)
+TRAIN_DIR = Path(CSV_PATH).parent / "train"
+TEST_DIR = Path(CSV_PATH).parent / "test"
+TRAIN_DIR.mkdir(exist_ok=True)
+TEST_DIR.mkdir(exist_ok=True)
 
-print(f"✅ Training images will be saved to: {TRAINING_DIR}")
+TEST_SIZE = 0.2  # 20% test set
 
-# Load seed CSV
+print(f"✅ Output dirs:\n- Train: {TRAIN_DIR}\n- Test:  {TEST_DIR}")
+
+# ------------------------------------------
+# Load Data
+# ------------------------------------------
+
 df = pd.read_csv(CSV_PATH)
 
 # Load previous output (if exists)
@@ -32,7 +40,20 @@ else:
     records = []
 
 # ------------------------------------------
-# Noise function mapping
+# Train/Test Split (based on original image path)
+# ------------------------------------------
+
+unique_orig_paths = df["original_image_path"].dropna().unique()
+train_paths, test_paths = train_test_split(
+    unique_orig_paths, test_size=TEST_SIZE, random_state=42
+)
+train_paths_set = set(train_paths)
+test_paths_set = set(test_paths)
+
+print(f"🔀 Split: {len(train_paths)} train, {len(test_paths)} test")
+
+# ------------------------------------------
+# Noise Functions
 # ------------------------------------------
 
 NOISE_FN_MAP = {
@@ -40,12 +61,7 @@ NOISE_FN_MAP = {
     "add_jpeg_compression": ImageNoiser.add_jpeg_compression,
     "add_gaussian_blur": ImageNoiser.add_gaussian_blur,
 }
-
 ALL_NOISE_FUNCTIONS = list(NOISE_FN_MAP.keys())
-
-# ------------------------------------------
-# Noise application
-# ------------------------------------------
 
 
 def apply_noise_pipeline(
@@ -61,9 +77,9 @@ def apply_noise_pipeline(
     return img
 
 
-# ==========================================
-# MAIN LOOP
-# ==========================================
+# ------------------------------------------
+# Main Processing Loop
+# ------------------------------------------
 
 for _, row in df.iterrows():
     orig_path = Path(row["original_image_path"])
@@ -72,7 +88,7 @@ for _, row in df.iterrows():
         continue
 
     if str(orig_path) in processed_paths:
-        continue  # Skip previously processed
+        continue
 
     label = row["label"]
     image = PILImage.open(orig_path)
@@ -94,36 +110,39 @@ for _, row in df.iterrows():
         print(f"⚠️  No valid noise operations for {orig_path}")
         continue
 
-    # Sort by provided fn_order
+    # Apply noise
     ordered_ops.sort()
     pipeline_ops = [(fn, sev) for _, fn, sev in ordered_ops]
-
     noisy_image = apply_noise_pipeline(image, pipeline_ops)
 
-    # Output filename
-    output_filename = f"{uuid4()}_{orig_path.stem}_noisy.jpg"
-    output_path = TRAINING_DIR / output_filename
+    # Determine split group
+    group = "train" if str(orig_path) in train_paths_set else "test"
+    dest_dir = TRAIN_DIR if group == "train" else TEST_DIR
 
-    # Avoid overwriting
+    # Save noisy image
+    output_filename = f"{uuid4()}_{orig_path.stem}_noisy.jpg"
+    output_path = dest_dir / output_filename
+
     if output_path.exists():
-        print(f"⚠️  Skipping already existing: {output_path}")
+        print(f"⚠️  Already exists: {output_path}")
         continue
 
     noisy_image.save(output_path, quality=95)
-    print(f"✅ Saved: {output_path.name}")
+    print(f"✅ Saved: {group}/{output_filename}")
 
-    # Record entry
+    # Record output
     record = {
         "original_image_path": str(orig_path),
         "noisy_image_path": str(output_path),
         "label": label,
+        "split": group,
         **fn_severity_dict,
     }
     records.append(record)
 
-# ==========================================
-# SAVE UPDATED CSV
-# ==========================================
+# ------------------------------------------
+# Save Output CSV
+# ------------------------------------------
 
 pd.DataFrame(records).to_csv(OUTPUT_CSV, index=False)
 print(f"📝 Saved noisy image labels to: {OUTPUT_CSV}")
