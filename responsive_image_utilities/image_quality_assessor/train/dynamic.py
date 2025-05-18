@@ -112,11 +112,14 @@ class SiameseViTClassifier(nn.Module):
         embed_dim = 576  # mobilenet_v3_small outputs 576-dim features
 
         self.classifier = nn.Sequential(
-            nn.Linear(embed_dim * 3, 512),
+            nn.Linear(embed_dim * 3, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(512, 1),
+            nn.Linear(1024, 1),  # ✅ now this matches
         )
+
 
     def forward(self, img1, img2):
         f1 = self.feature_extractor(img1)
