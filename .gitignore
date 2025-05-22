@@ -178,3 +178,5 @@ temp.jpg
 
 */models/*
 */training_data/*
+
+wandb/

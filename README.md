@@ -14,6 +14,7 @@ A module for creating responsive images, with a simple API.
 
 
 ### Reads
+- [Awesome Image Quality Assessment](https://github.com/chaofengc/Awesome-Image-Quality-Assessment)
 - [Adding Noise to Images](https://medium.com/@ms_somanna/guide-to-adding-noise-to-your-data-using-python-and-numpy-c8be815df524)
 - [Image Scoring: Allocating Percentage Score to Images for Their Quality](https://medium.com/engineering-housing/image-scoring-allocating-percentage-score-to-images-for-their-quality-6169abbf850e)
 - [Fine Grain Image Enhancer](https://huggingface.co/spaces/finegrain/finegrain-image-enhancer)
@@ -22,6 +23,7 @@ A module for creating responsive images, with a simple API.
 - [Detecting Out of Focus Images](https://mathematica.stackexchange.com/questions/71726/how-can-i-detect-if-an-image-is-of-poor-quality)
 - [Comprehensive Image Quality Detection Algorithms](https://medium.com/@jaikochhar06/how-to-evaluate-image-quality-in-python-a-comprehensive-guide-e486a0aa1f60)
 - [Package Contain Algorithms Above](https://github.com/andrewekhalel/sewar)
+- [QualiCLIP](https://github.com/miccunifi/QualiCLIP)
 
 ### Building a Labeler
 - [Flet](https://flet.dev/docs/cookbook/keyboard-shortcuts)
@@ -47,6 +49,8 @@ https://huggingface.co/datasets/recastai/coyo-10m-aesthetic
 By following these steps, you'll ensure that you're correctly attributing the code and complying with the requirements of the Apache License 2.0.
 ```
 
+## Datasets
+- [IQA-PyTorch-Datasets](https://huggingface.co/datasets/chaofengc/IQA-PyTorch-Datasets/tree/main)
 
 ### Handling Dataset
 Why files take more space on an `exfat` than `ext4`.
